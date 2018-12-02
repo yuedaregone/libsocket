@@ -11,7 +11,7 @@ solution "testcp"
 		"Native", -- for targets where bitness is not specified
 	}
 
-	language "C++"
+	language "C"
 
 SOLUTION_DIR = path.getabsolute("..")
 dofile "toolchain.lua"
@@ -20,44 +20,56 @@ toolchain(path.join(SOLUTION_DIR, "build"), "")
 --dofile "**.lua"
 
 PROJ_DIR = SOLUTION_DIR
-project "testcp"
+project "client"
 	kind "ConsoleApp" --kind "StaticLib"
 
-	debugdir (path.join(PROJ_DIR, "src"))	
-
-	
+	debugdir (path.join(PROJ_DIR, "src"))
+		
 	includedirs {
-		path.join(PROJ_DIR, "src"),		
+		path.join(PROJ_DIR, "src"),	
+		path.join(PROJ_DIR, "src/socket"),	
+		path.join(PROJ_DIR, "src/utils"),		
 	}
 
 	files {
-		path.join(PROJ_DIR, "src/testcp.cpp"),
-		--path.join(PROJ_DIR, "src/**.h"),
+		path.join(PROJ_DIR, "src/**.c"),
+		path.join(PROJ_DIR, "src/**.h"),
 	}
---[[
-	links {
-		"bx",
-	}]]
-
-	configuration { "vs* or mingw*" }
-		links {
-			"psapi",
-		}
-		buildoptions {
-			"/wd4244",
-		}		
-
-	configuration { "linux-*" }
-		links {
-			"pthread",
-		}
+	excludes {
+		path.join(PROJ_DIR, "src/test_server.c"),
+	}
 
 	configuration { "osx" }
-		links {
+		--[[links {
 			"Cocoa.framework",
-		}
+		}]]
 
 	configuration {}
 
 	--strip()
 
+project "server"
+	kind "ConsoleApp" --kind "StaticLib"
+
+	debugdir (path.join(PROJ_DIR, "src"))
+		
+	includedirs {
+		path.join(PROJ_DIR, "src"),	
+		path.join(PROJ_DIR, "src/socket"),	
+		path.join(PROJ_DIR, "src/utils"),		
+	}
+
+	files {
+		path.join(PROJ_DIR, "src/**.c"),
+		path.join(PROJ_DIR, "src/**.h"),
+	}
+	excludes {
+		path.join(PROJ_DIR, "src/test_client.c"),
+	}
+
+	configuration { "osx" }
+		--[[links {
+			"Cocoa.framework",
+		}]]
+
+	configuration {}
