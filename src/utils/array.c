@@ -52,7 +52,7 @@ int array_remove(struct array* ar, int idx)
         ar->count--;
         return AR_OK;
     }
-    memcpy((char*)ar->data + idx * ar->im_sz, (char*)ar->data + (idx + 1) * ar->im_sz, (ar->count - idx - 1) * ar->im_sz);
+    memmove((char*)ar->data + idx * ar->im_sz, (char*)ar->data + (idx + 1) * ar->im_sz, (ar->count - idx - 1) * ar->im_sz);    
     ar->count--;
     return AR_OK;
 }
