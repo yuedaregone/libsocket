@@ -12,7 +12,7 @@ struct skt_client* skt_create_client()
 	{
 		int err = GET_ERROR_CODE;
 		skt_error("Error:Start up socket! %d\n", err);
-		return;
+		return NULL;
 	}
 #endif
     struct skt_client* skt = (struct skt_client*)malloc(sizeof(struct skt_client));
@@ -63,6 +63,7 @@ int skt_open_client(struct skt_client* skt, const char* local_ip, uint16_t port)
 		memset(&addr, 0, sizeof(addr));
 		addr.sin_family = AF_INET;
 		addr.sin_addr.s_addr = inet_addr(local_ip);
+		addr.sin_port = htons(port);
 		int32_t ret = bind(skt->skt, (struct sockaddr *)&addr, sizeof(addr));
 		if (0 != ret)
 		{

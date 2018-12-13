@@ -3,31 +3,29 @@
 #include "buffer.h"
 #include <string.h>
 
-void recv_data(struct skt_io* io)
+void recv_data(skt_d skt, struct buf_circle* buf)
 {
-    char buff[512] = {0};
-    buf_read_circle(io->recv_buf, (int8_t*)buff, 512);
-    printf("server_recv:");
-    printf("%s\n", buff);
+	char buff[512] = { 0 };
+	buf_read_circle(buf, buff, 512);
+	printf("server_recv - %d :", skt);
+	printf(buff);
+	printf("\n");
 }
 
 int main()
 {
-    printf("test1");
-    struct skt_conn* conn = skt_create();
-    if (conn == NULL)
-    {
-        printf("Test");
-    }
-    skt_open_as_servers(conn, "127.0.0.1", 8086);
-    conn->recv_cb = recv_data;
-    printf("test");
-    while (1)
-    {
-        //skt_send(conn, (int8_t*)"HelloWorld!", strlen("HelloWorld!"));
-        skt_update_state(conn);
-
-        usleep(100000);
-    }
-    return 0;
+	struct skt_server* server = skt_create_server();
+	skt_open_server(server, "127.0.0.1", 8086);
+	server->recv_cb = recv_data;
+	while (1)
+	{
+		//skt_send_io(server, "HelloWorld!", strlen("HelloWorld!"));
+		skt_update_state_server(server);
+#ifdef _WIN32
+		Sleep(100);
+#else
+		usleep(100000);
+#endif        
+	}
+	return 0;
 }

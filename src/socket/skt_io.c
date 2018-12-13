@@ -1,10 +1,11 @@
 #include "skt.h"
 #include "buffer.h"
 
-struct skt_io* skt_create_io(struct skt_conn* n, skt_d skt)
+struct skt_io* skt_create_io(skt_d skt, struct skt_server* server)
 {
     struct skt_io* io = (struct skt_io*)malloc(sizeof(struct skt_io));
     io->skt = skt;
+	io->server = server;
     io->err_no = SKT_OK;
     io->send_buf = buf_create_circle(BUFFER_SOCKET_DATA_SIZE);
 	io->recv_buf = buf_create_circle(BUFFER_SOCKET_DATA_SIZE);
@@ -95,6 +96,7 @@ static void skt_update_recv_io(struct skt_io* io)
 			buf_reinit_data(io->cur_recv);
 		}
 		//cb
+		(*(io->server->recv_cb))(io->skt, io->recv_buf);
 	}
 
 	int32_t sz = 0;

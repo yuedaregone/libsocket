@@ -12,7 +12,7 @@ struct skt_server* skt_create_server()
 	{
 		int err = GET_ERROR_CODE;
 		skt_error("Error:Start up socket! %d\n", err);
-		return;
+		return NULL;
 	}
 #endif
     struct skt_server* skt = (struct skt_server*)malloc(sizeof(struct skt_server));
@@ -41,7 +41,7 @@ void skt_destroy_server(struct skt_server* skt)
 	if (result != 0)
 	{
 		int err = GET_ERROR_CODE;
-		LogError("Error:Destroy socket! %d\n", err);
+		skt_error("Error:Destroy socket! %d\n", err);
 	}
 #endif
 }
@@ -89,7 +89,7 @@ int skt_open_server(struct skt_server* skt, const char* ip, uint16_t port)
 	{
 		int err = GET_ERROR_CODE;
 		skt_error("Socket Error: Bind Server Socket Error! %d\n", err);
-		skt_close(skt);
+		skt_close_server(skt);
 		skt->err_no = err;
 		return SKT_ERR;
 	}
@@ -99,7 +99,7 @@ int skt_open_server(struct skt_server* skt, const char* ip, uint16_t port)
 	{
 		int err = GET_ERROR_CODE;
 		skt_error("Socket Error: Listen Socket Error! %d\n", err);
-		skt_close(skt);
+		skt_close_server(skt);
 		skt->err_no = err;
 		return SKT_ERR;
 	}
@@ -117,7 +117,7 @@ static int skt_accept_client(struct skt_server* skt)
 	socklen_t size = (socklen_t)sizeof(addr);
 #endif
 	int ret = accept(skt->skt, (struct sockaddr*)&addr, &size);
-	if (ret != SKT_OK)
+	if (ret <= SKT_OK)
 	{
 		int err = GET_ERROR_CODE;;
 #ifdef _WIN32
@@ -127,7 +127,7 @@ static int skt_accept_client(struct skt_server* skt)
 #endif
 		{
 			skt_error("Socket Error: Connect Error %d\n", err);
-			skt_close(skt);
+			skt_close_server(skt);
 			skt->err_no = err;
 			return SKT_ERR;
 		}
@@ -142,7 +142,7 @@ static void skt_check_accept(struct skt_server* skt)
 	int sk = skt_accept_client(skt);
 	if (sk != SKT_ERR)
 	{
-		struct skt_io* io = skt_create_io(skt, sk);
+		struct skt_io* io = skt_create_io(sk, skt);
 		array_add(skt->skt_ios, (void*)&io);
 	}
 }
@@ -184,18 +184,18 @@ static int skt_find_io_index(struct skt_server* skt, skt_d id)
 	return i;
 }
 
-int32_t skt_send_to_skt(struct skt_server* skt, skt_d id, int8_t* buf, int32_t len)
-{
-	int idx = skt_find_io_index(skt, id);
-	return skt_send_to_skt_index(skt, idx, buf, len);
-}
-
-int32_t skt_send_to_skt_index(struct skt_server* skt, int idx, int8_t* buf, int32_t len)
+static int32_t skt_send_to_skt_index(struct skt_server* skt, int idx, int8_t* buf, int32_t len)
 {
 	if (idx < 0 || idx >= skt->skt_ios->count)
 		return SKT_ERR;
 	struct skt_io* io = *(struct skt_io**)array_index(skt->skt_ios, idx);
 	return skt_send_io(io, buf, len);
+}
+
+int32_t skt_send_to_skt(struct skt_server* skt, skt_d id, int8_t* buf, int32_t len)
+{
+	int idx = skt_find_io_index(skt, id);
+	return skt_send_to_skt_index(skt, idx, buf, len);
 }
 
 void skt_update_state_server(struct skt_server* skt)
@@ -211,7 +211,7 @@ void skt_update_state_server(struct skt_server* skt)
             return;        
 #endif		
         skt_error("Socket Error: Connect Error %d\n", err);
-        skt_close(skt);
+		skt_close_server(skt);
         skt->err_no = err;
         return;
     }

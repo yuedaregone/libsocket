@@ -23,7 +23,9 @@ typedef int32_t skt_d;
 #endif
 
 #define IP_MAX_LEN 16
+#ifndef INVALID_SOCKET
 #define INVALID_SOCKET -1
+#endif
 #define SKT_OK 0
 #define SKT_ERR -1
 
@@ -39,16 +41,6 @@ typedef int32_t skt_d;
 struct buf_circle;
 struct buf_data;
 struct array;
-
-struct skt_io
-{
-	skt_d skt;
-	int err_no;
-	struct buf_circle* send_buf;
-	struct buf_circle* recv_buf;
-	struct buf_data* cur_send;
-	struct buf_data* cur_recv;
-};
 
 typedef void (*skt_recv_data)(skt_d skt, struct buf_circle* buf);
 
@@ -75,6 +67,17 @@ struct skt_server
     uint16_t conn_port;
 	skt_recv_data recv_cb;
 	struct array* skt_ios;
+};
+
+struct skt_io
+{
+	skt_d skt;
+	int err_no;
+	struct skt_server* server;
+	struct buf_circle* send_buf;
+	struct buf_circle* recv_buf;
+	struct buf_data* cur_send;
+	struct buf_data* cur_recv;
 };
 
 enum
@@ -113,7 +116,7 @@ void skt_warning(const char* str, ...);
 void skt_log(const char* str, ...);
 
 //socket_io
-struct skt_io* skt_create_io(struct skt_conn* n, skt_d skt);
+struct skt_io* skt_create_io(skt_d skt, struct skt_server* server);
 void skt_destroy_io(struct skt_io* io);
 void skt_update_io(struct skt_io* io);
 int32_t skt_send_io(struct skt_io* io, int8_t* buf, int32_t len);
@@ -131,7 +134,7 @@ void skt_close_client(struct skt_client* skt);
 struct skt_server* skt_create_server();
 void skt_destroy_server(struct skt_server* skt);
 int skt_open_server(struct skt_server* skt, const char* ip, uint16_t port);
-int32_t skt_send_to_client(struct skt_server* skt, int8_t* buf, int32_t len);
+//int32_t skt_send_to_client(struct skt_server* skt, int8_t* buf, int32_t len);
 void skt_update_state_server(struct skt_server* skt);
 void skt_close_server(struct skt_server* skt);
 
