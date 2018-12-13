@@ -1,5 +1,6 @@
 #include "skt.h"
 #include "buffer.h"
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -15,15 +16,21 @@ void recv_data(skt_d skt, struct buf_circle* buf)
 
 int main()
 {
-    struct skt_client* client = skt_create_client();
-	skt_open_client(client, NULL, 0);
-    skt_connect_server(client, "127.0.0.1", 8086);
+    struct skt_client* client = skt_client_create();
+	skt_client_open(client, NULL, 0);
+    skt_client_connect(client, "127.0.0.1", 8086);
 	client->recv_cb = recv_data;
     while (1)
     {
-        skt_send_to_server(client, "HelloWorld!", strlen("HelloWorld!"));
+		if (client->sta == skt_success)
+		{
+			static char buff[512];
+			scanf("%s", buff);
 
-        skt_update_state_client(client);
+			skt_client_send_to(client, buff, strlen(buff));
+		}            
+
+        skt_client_update_state(client);
 #ifdef _WIN32
 		Sleep(100);
 #else

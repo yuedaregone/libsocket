@@ -73,7 +73,7 @@ struct skt_io
 {
 	skt_d skt;
 	int err_no;
-	struct skt_server* server;
+	skt_recv_data data_cb;
 	struct buf_circle* send_buf;
 	struct buf_circle* recv_buf;
 	struct buf_data* cur_send;
@@ -109,6 +109,7 @@ typedef struct
 int32_t skt_set_non_block(int32_t fd);
 void skt_delay(uint32_t usec);
 int32_t skt_select_fd(int32_t fd, double maxtime, int32_t wait_for);
+void skt_close(skt_d id);
 
 //socket_log
 void skt_error(const char* str, ...);
@@ -116,26 +117,26 @@ void skt_warning(const char* str, ...);
 void skt_log(const char* str, ...);
 
 //socket_io
-struct skt_io* skt_create_io(skt_d skt, struct skt_server* server);
+struct skt_io* skt_create_io(skt_d skt, skt_recv_data cb);
 void skt_destroy_io(struct skt_io* io);
 void skt_update_io(struct skt_io* io);
 int32_t skt_send_io(struct skt_io* io, int8_t* buf, int32_t len);
 
 //socket_client
-struct skt_client* skt_create_client();
-void skt_destroy_client(struct skt_client* skt);
-int skt_open_client(struct skt_client* skt, const char* ip, uint16_t port);
-int skt_connect_server(struct skt_client* skt, const char* ip, uint16_t port);
-int32_t skt_send_to_server(struct skt_client* skt, int8_t* buf, int32_t len);
-void skt_update_state_client(struct skt_client* skt);
-void skt_close_client(struct skt_client* skt);
+struct skt_client* skt_client_create();
+void skt_client_destroy(struct skt_client* skt);
+int skt_client_open(struct skt_client* skt, const char* local_ip, uint16_t local_port);
+int skt_client_connect(struct skt_client* skt, const char* ip, uint16_t port);
+int32_t skt_client_send_to(struct skt_client* skt, int8_t* buf, int32_t len);
+void skt_client_update_state(struct skt_client* skt);
+void skt_client_close(struct skt_client* skt);
 
 //socket_server
-struct skt_server* skt_create_server();
-void skt_destroy_server(struct skt_server* skt);
-int skt_open_server(struct skt_server* skt, const char* ip, uint16_t port);
-//int32_t skt_send_to_client(struct skt_server* skt, int8_t* buf, int32_t len);
-void skt_update_state_server(struct skt_server* skt);
-void skt_close_server(struct skt_server* skt);
+struct skt_server* skt_server_create();
+void skt_server_destroy(struct skt_server* skt);
+int skt_server_open(struct skt_server* skt, const char* ip, uint16_t port);
+int32_t skt_server_send_to(struct skt_server* skt, skt_d id, int8_t* buf, int32_t len);
+void skt_server_update_state(struct skt_server* skt);
+void skt_server_close(struct skt_server* skt);
 
 #endif

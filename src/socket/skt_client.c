@@ -3,7 +3,7 @@
 #include "skt.h"
 #include "buffer.h"
 
-struct skt_client* skt_create_client()
+struct skt_client* skt_client_create()
 {
 #ifdef _WIN32
 	WSADATA data;
@@ -29,7 +29,7 @@ struct skt_client* skt_create_client()
     return skt;
 }
 
-void skt_destroy_client(struct skt_client* skt)
+void skt_client_destroy(struct skt_client* skt)
 {
     buf_destroy_circle(skt->send_buf);
 	buf_destroy_circle(skt->recv_buf);
@@ -47,7 +47,7 @@ void skt_destroy_client(struct skt_client* skt)
 #endif
 }
 
-int skt_open_client(struct skt_client* skt, const char* local_ip, uint16_t port)
+int skt_client_open(struct skt_client* skt, const char* local_ip, uint16_t local_port)
 {
     skt->skt = socket(AF_INET, SOCK_STREAM, 0);
 	if (skt->skt == INVALID_SOCKET)
@@ -63,13 +63,13 @@ int skt_open_client(struct skt_client* skt, const char* local_ip, uint16_t port)
 		memset(&addr, 0, sizeof(addr));
 		addr.sin_family = AF_INET;
 		addr.sin_addr.s_addr = inet_addr(local_ip);
-		addr.sin_port = htons(port);
+		addr.sin_port = htons(local_port);
 		int32_t ret = bind(skt->skt, (struct sockaddr *)&addr, sizeof(addr));
 		if (0 != ret)
 		{
 			int err = GET_ERROR_CODE;
 			skt_error("Socket Error: Bind Client Socket Error! %d\n", err);
-			skt_close_client(skt);
+			skt_client_close(skt);
 			skt->err_no = err;
 			return SKT_ERR;
 		}
@@ -79,7 +79,7 @@ int skt_open_client(struct skt_client* skt, const char* local_ip, uint16_t port)
 	return SKT_OK;
 }
 
-int skt_connect_server(struct skt_client* skt, const char* ip, uint16_t port)
+int skt_client_connect(struct skt_client* skt, const char* ip, uint16_t port)
 {
     if (ip == NULL)
 	{
@@ -115,7 +115,7 @@ int skt_connect_server(struct skt_client* skt, const char* ip, uint16_t port)
 		else
 		{
 			skt_error("Socket Error: Connect Error %d\n", err);
-			skt_close_client(skt);
+			skt_client_close(skt);
 			skt->err_no = err;
 			return SKT_ERR;		
 		}
@@ -138,7 +138,7 @@ static void skt_check_connect(struct skt_client* skt)
 	}
 }
 
-int32_t skt_send_to_server(struct skt_client* skt, int8_t* buf, int32_t len)
+int32_t skt_client_send_to(struct skt_client* skt, int8_t* buf, int32_t len)
 {
 	while (skt->send_buf->cap < len)
 	{
@@ -233,7 +233,7 @@ static void skt_update_recv_io(struct skt_client* skt)
 	}
 }
 
-void skt_update_state_client(struct skt_client* skt)
+void skt_client_update_state(struct skt_client* skt)
 {	
 	if (skt->sta == skt_conneting)
 	{
@@ -250,11 +250,7 @@ void skt_update_state_client(struct skt_client* skt)
 	}
 }
 
-void skt_close_client(struct skt_client* skt)
+void skt_client_close(struct skt_client* skt)
 {
-#ifdef _WIN32
-	closesocket(skt->skt);
-#else
-	close(skt->skt);
-#endif 
+	skt_close(skt->skt);
 }
