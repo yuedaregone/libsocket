@@ -6,7 +6,7 @@ solution "testcp"
 	}
 
 	platforms {
-		"x32",
+		--"x32",
 		"x64",
 		"Native", -- for targets where bitness is not specified
 	}
@@ -48,9 +48,10 @@ project "client"
 		}
 
 	configuration { "osx" }
-		--[[links {
-			"Cocoa.framework",
-		}]]
+		links {
+			--"Cocoa.framework",
+			--"CFNetwork.framework",
+		}
 
 	configuration {}
 
@@ -84,8 +85,9 @@ project "server"
 		}
 
 	configuration { "osx" }
-		--[[links {
-			"Cocoa.framework",
-		}]]
+		links {
+			--"Cocoa.framework",
+			--"CFNetwork.framework",
+		}
 
 	configuration {}

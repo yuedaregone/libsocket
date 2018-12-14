@@ -32,23 +32,6 @@ int32_t skt_send_io(struct skt_io* io, int8_t* buf, int32_t len)
 	return buf_write_circle(io->send_buf, buf, len);
 }
 
-static void skt_socket_io_error(struct skt_io* io)
-{
-	int err = GET_ERROR_CODE;
-#ifdef _WIN32		
-	if (err == WSAEWOULDBLOCK)
-#else
-	if (err == EINPROGRESS)
-#endif
-	{
-		skt_warning("Socket Warning: Connect Busy\n");
-	}
-	else
-	{
-		skt_error("Socket Error: %d\n", err);
-	}
-	io->err_no = err;
-}
 
 static void skt_update_send_io(struct skt_io* io)
 {

@@ -9,7 +9,7 @@ void recv_data(skt_d skt, struct buf_circle* buf)
 
     char buff[512] = {0};
     buf_read_circle(buf, (int8_t*)buff, 512);
-    printf("client_recv:");
+    printf("client_recv - %d :", skt);
     printf("%s\n", (char*)buff);
 }
 
@@ -26,7 +26,7 @@ int main()
 			static char buff[512];
 			scanf("%s", buff);
 
-			skt_client_send_to(client, buff, strlen(buff));
+			skt_client_send_to(client, (int8_t*)buff, strlen(buff));
 		}            
 
         skt_client_update_state(client);

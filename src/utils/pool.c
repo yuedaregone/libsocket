@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include "pool.h"
 #include "array.h"
 
@@ -25,7 +26,7 @@ void* pool_request(struct pool* p)
     void* data = NULL;
     if (p->dis->count > 0)
     {
-        void* data = array_index(p->dis, p->dis->count - 1);
+        data = array_index(p->dis, p->dis->count - 1);
         array_remove(p->dis, p->dis->count - 1);        
     }
     else
