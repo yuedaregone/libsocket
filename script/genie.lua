@@ -39,6 +39,14 @@ project "client"
 		path.join(PROJ_DIR, "src/test_server.c"),
 	}
 
+	configuration { "vs* or mingw*" }
+		defines {
+			"_WINSOCK_DEPRECATED_NO_WARNINGS",
+		}
+		links {
+			"wsock32",
+		}
+
 	configuration { "osx" }
 		--[[links {
 			"Cocoa.framework",
@@ -66,6 +74,14 @@ project "server"
 	excludes {
 		path.join(PROJ_DIR, "src/test_client.c"),
 	}
+
+	configuration { "vs* or mingw*" }
+		defines {
+			"_WINSOCK_DEPRECATED_NO_WARNINGS",
+		}
+		links {
+			"wsock32",
+		}
 
 	configuration { "osx" }
 		--[[links {

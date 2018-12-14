@@ -133,7 +133,7 @@ function toolchain(_buildDir, _libDir)
 	newoption {
 		trigger = "with-windows",
 		value = "#",
-		description = "Set the Windows target platform version (default: $WindowsSDKVersion or 8.1).",
+		description = "Set the Windows target platform version (default: $WindowsSDKVersion or 10.0.17134.0).",
 	}
 
 	newoption {
@@ -182,7 +182,7 @@ function toolchain(_buildDir, _libDir)
 		tvosPlatform = _OPTIONS["with-tvos"]
 	end
 
-	local windowsPlatform = string.gsub(os.getenv("WindowsSDKVersion") or "8.1", "\\", "")
+	local windowsPlatform = string.gsub(os.getenv("WindowsSDKVersion") or "10.0.17134.0", "\\", "")
 	if _OPTIONS["with-windows"] then
 		windowsPlatform = _OPTIONS["with-windows"]
 	end

@@ -1,12 +1,11 @@
 #include "skt.h"
 #include "buffer.h"
 
-struct skt_io* skt_create_io(struct skt_conn* n, skt_d skt)
+struct skt_io* skt_create_io(skt_d skt, skt_recv_data cb)
 {
     struct skt_io* io = (struct skt_io*)malloc(sizeof(struct skt_io));
-    io->conn = n;
     io->skt = skt;
-    io->disconnect = 0;
+	io->data_cb = cb;
     io->err_no = SKT_OK;
     io->send_buf = buf_create_circle(BUFFER_SOCKET_DATA_SIZE);
 	io->recv_buf = buf_create_circle(BUFFER_SOCKET_DATA_SIZE);
@@ -64,29 +63,26 @@ static void skt_update_send_io(struct skt_io* io)
 	int32_t sz = 0;
 	while ((sz = buf_size_data(io->cur_send)) > 0)
 	{
-		int32_t ret = skt_select_fd(io->skt, 0.01, WAIT_FOR_WRITE);
-		if (ret == 0)
-		{
-			break;
-		}
-		else if (ret > 0)
-		{
-			int len = send(io->skt, io->cur_send->buf + io->cur_send->st_idx, sz, 0);
-			if (len > 0)
-			{
-				io->cur_send->st_idx += len;
-			}
-			else
-			{
-				skt_socket_io_error(io);
-				break;
-			}
-		}
-		else if (ret < 0)
-		{
-			skt_socket_io_error(io);
-			break;
-		}
+        int len = send(io->skt, io->cur_send->buf + io->cur_send->st_idx, sz, 0);
+        if (len > 0)
+        {
+            io->cur_send->st_idx += len;
+        }
+        else
+        {
+            int err = GET_ERROR_CODE;
+#ifdef _WIN32		
+            if (err != WSAEWOULDBLOCK && err != WSAEINPROGRESS)
+#else
+            if (err == EINTR)
+                continue;
+            if (err != EAGAIN && err != EWOULDBLOCK && err != EINPROGRESS)
+#endif
+            {
+                io->err_no = err; 
+            }              
+            break;
+        }
 	}
 }
 
@@ -99,43 +95,43 @@ static void skt_update_recv_io(struct skt_io* io)
 		{
 			buf_reinit_data(io->cur_recv);
 		}
-		if (io->conn->recv_cb != NULL)
+		//cb
+		if (io->data_cb != NULL)
 		{
-			(io->conn->recv_cb)(io);
-		}
+			(*io->data_cb)(io->skt, io->recv_buf);
+		}		
 	}
 
 	int32_t sz = 0;
 	while ((sz = buf_space_data(io->cur_recv)) > 0)
 	{
-		int32_t ret = skt_select_fd(io->skt, 0.01, WAIT_FOR_READ);
-		if (ret == 0)
-		{
-			break;
-		}
-		else if (ret > 0)
-		{
-			int len = recv(io->skt, io->cur_recv->buf + io->cur_recv->ed_idx, sz, 0);
-			if (len > 0)
-			{
-				io->cur_recv->ed_idx += len;
-			}
-			else
-			{
-				if (len == 0)
-				{
-					io->disconnect = 1;
-                    skt_onioerror(io->conn, io);
-				}				
-				skt_socket_io_error(io);				
-				break;
-			}			
-		}
-		else
-		{
-			skt_socket_io_error(io);
-			break;			
-		}
+        int len = recv(io->skt, io->cur_recv->buf + io->cur_recv->ed_idx, sz, 0);
+        if (len > 0)
+        {
+            io->cur_recv->ed_idx += len;
+        }
+        else
+        {
+            if (len == 0)
+            {
+                io->err_no = SKT_ERR; 
+            }	
+            else
+            {
+                int err = GET_ERROR_CODE;
+#ifdef _WIN32		
+                if (err != WSAEWOULDBLOCK && err != WSAEINPROGRESS)
+#else
+                if (err == EINTR)
+                    continue;
+                if (err != EAGAIN && err != EWOULDBLOCK && err != EINPROGRESS)
+#endif
+                {
+                    io->err_no = err; 
+                }
+            }
+            break;
+        }		
 	}
 }
 

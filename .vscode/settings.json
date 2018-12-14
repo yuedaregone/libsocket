@@ -1,5 +1,8 @@
 {
     "files.associations": {
-        "skt.h": "c"
+        "skt.h": "c",
+        "winsock2.h": "c",
+        "windows.h": "c",
+        "winsock.h": "c"
     }
 }

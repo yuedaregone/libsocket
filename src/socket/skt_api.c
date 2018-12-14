@@ -55,7 +55,7 @@ int32_t skt_select_fd(int32_t fd, double maxtime, int32_t wait_for)
 	struct timeval tmout;
 
 	FD_ZERO(&fdset);
-	FD_SET(fd, &fdset);
+	FD_SET((uint32_t)fd, &fdset);
 	if (wait_for & WAIT_FOR_READ)
 		rd = &fdset;
 	if (wait_for & WAIT_FOR_WRITE)
@@ -65,5 +65,14 @@ int32_t skt_select_fd(int32_t fd, double maxtime, int32_t wait_for)
 	tmout.tv_usec = (long)(1000000 * (maxtime - (long)maxtime));
 	
 	return select(fd + 1, rd, wr, NULL, &tmout);
+}
+
+void skt_close(skt_d id)
+{
+#ifdef _WIN32
+	closesocket(id);
+#else
+	close(id);
+#endif 
 }
 
