@@ -6,10 +6,9 @@
 void recv_data(struct skt_io* io)
 {
     char buff[512] = {0};
-    buf_read_circle(io->recv_buf, buff, 512);
+    buf_read_circle(io->recv_buf, (int8_t*)buff, 512);
     printf("client_recv:");
-    printf(buff);
-    printf("\n");
+    printf("%s\n", (char*)buff);
 }
 
 int main()
@@ -20,7 +19,7 @@ int main()
     conn->recv_cb = recv_data;
     while (1)
     {
-        skt_send(conn, "HelloWorld!", strlen("HelloWorld!"));
+        skt_send(conn, (int8_t*)"HelloWorld!", strlen("HelloWorld!"));
 
         skt_update_state(conn);
 
