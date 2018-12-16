@@ -28,8 +28,9 @@ int main()
 		{
 			static char buff[512];
 			scanf("%s", buff);
-
-			skt_client_send_to(client, (int8_t*)buff, (int32_t)strlen(buff));
+            
+            printf("%s\n", buff);
+			skt_client_send_to(client, (int8_t*)buff, (int32_t)strlen(buff)+1);
 		}            
 
         skt_client_update_state(client);
