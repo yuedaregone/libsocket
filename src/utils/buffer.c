@@ -76,6 +76,34 @@ int32_t buf_read_circle(struct buf_circle* buf, int8_t* out_b, int32_t len)
     return sz;
 }
 
+
+int32_t buf_peek_circle(struct buf_circle* buf, int8_t* out_b, int32_t len)
+{
+    int32_t sz = buf->data_sz < len ? buf->data_sz : len;
+    if (sz <= 0)
+    {
+        return 0;
+    }
+    if (buf->rd_idx < buf->wt_idx)
+    {
+        memcpy(out_b, buf->buf + buf->rd_idx, sz);
+    }
+    else
+    {
+        int32_t r = buf->cap - buf->rd_idx;
+        if (sz <= r)
+        {
+            memcpy(out_b, buf->buf + buf->rd_idx, sz);
+        }
+        else
+        {
+            memcpy(out_b, buf->buf + buf->rd_idx, r);
+            memcpy(out_b + r, buf->buf, sz - r);
+        }
+    }
+    return sz;
+}
+
 int32_t buf_write_circle(struct buf_circle* buf, int8_t* in_b, int32_t len)
 {
     int32_t sp_sz = buf_space_circle(buf);
@@ -107,6 +135,11 @@ int32_t buf_write_circle(struct buf_circle* buf, int8_t* in_b, int32_t len)
     }
     buf->data_sz += sz;
     return sz;
+}
+
+void buf_clear_circle(struct buf_circle* buf)
+{
+    buf->data_sz = buf->rd_idx = buf->wt_idx = 0;
 }
 
 

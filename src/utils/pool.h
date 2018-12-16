@@ -14,7 +14,7 @@ struct pool
     struct array* dis;
 };
 
-struct pool* pool_create(int item_size, pool_create_item_fun create, pool_destroy_item_fun destroy);
+struct pool* pool_create(pool_create_item_fun create, pool_destroy_item_fun destroy);
 void pool_destroy(struct pool* p);
 void* pool_request(struct pool* p);
 void pool_return(struct pool* p, void* item);
