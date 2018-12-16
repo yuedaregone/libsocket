@@ -6,8 +6,8 @@ solution "testcp"
 	}
 
 	platforms {
-		--"x32",
-		"x64",
+--		"x32",
+--		"x64",
 		"Native", -- for targets where bitness is not specified
 	}
 
@@ -52,6 +52,10 @@ project "client"
 			--"Cocoa.framework",
 			--"CFNetwork.framework",
 		}
+	configuration { "linux" }
+		buildoptions {
+			"-std=c99",
+		}	
 
 	configuration {}
 
@@ -90,4 +94,8 @@ project "server"
 			--"CFNetwork.framework",
 		}
 
+	configuration { "linux" }
+		buildoptions {
+			"-std=c99",
+		}
 	configuration {}

@@ -2,11 +2,14 @@
 #include <stdlib.h>
 #include "buffer.h"
 #include <string.h>
+#ifndef _WIN32
+#include <unistd.h>
+#endif
 
 void recv_data(skt_d skt, struct buf_circle* buf)
 {
 	char buff[512] = { 0 };
-	buf_read_circle(buf, buff, 512);
+	buf_read_circle(buf, (int8_t*)buff, 512);
 	printf("server_recv - %d :", skt);
 	printf("%s\n", buff);
 }
@@ -14,7 +17,7 @@ void recv_data(skt_d skt, struct buf_circle* buf)
 int main()
 {
 	struct skt_server* server = skt_server_create();
-	skt_server_open(server, "127.0.0.1", 8086);
+	skt_server_open(server, "192.168.31.51", 8086);
 	server->recv_cb = recv_data;
 	while (1)
 	{
