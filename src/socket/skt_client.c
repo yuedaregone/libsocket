@@ -160,7 +160,7 @@ static void skt_update_send_io(struct skt_client* skt)
 	int32_t sz = 0;
 	while ((sz = buf_size_data(skt->cur_send)) > 0)
 	{
-        int len = send(skt->skt, skt->cur_send->buf + skt->cur_send->st_idx, sz, 0);
+        int len = (int)send(skt->skt, skt->cur_send->buf + skt->cur_send->st_idx, (size_t)sz, 0);
         if (len > 0)
         {
             skt->cur_send->st_idx += len;
