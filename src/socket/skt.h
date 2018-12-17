@@ -95,16 +95,6 @@ enum {
 	WAIT_FOR_WRITE = 2
 };
 
-#pragma pack(1)
-
-typedef struct  
-{
-	uint32_t tag;
-	uint16_t length;
-}msg_head;
-
-#pragma pack()
-
 //socket_api
 int32_t skt_set_non_block(int32_t fd);
 void skt_delay(uint32_t usec);

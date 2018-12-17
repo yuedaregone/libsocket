@@ -3,13 +3,13 @@
 #include "pool.h"
 #include "array.h"
 
-struct pool* pool_create(int item_size, pool_create_item_fun create, pool_destroy_item_fun destroy)
+struct pool* pool_create(pool_create_item_fun create, pool_destroy_item_fun destroy)
 {
     struct pool* p = (struct pool*)malloc(sizeof(struct pool));
     p->create = create;
     p->destroy = destroy;
-    p->act = array_create(item_size);
-    p->dis = array_create(item_size);
+    p->act = array_create(sizeof(void*));
+    p->dis = array_create(sizeof(void*));
     return p;
 }
 
@@ -31,7 +31,8 @@ void* pool_request(struct pool* p)
     }
     else
     {
-        data = (*p->create)();
+        void* crt = (void*)(*p->create)();
+        data = (void*)&crt;
     }
     array_add(p->act, data);
     return data;
@@ -39,5 +40,14 @@ void* pool_request(struct pool* p)
 
 void pool_return(struct pool* p, void* item)
 {
-
+    for (int i = 0;i < p->act->count; ++i)
+    {
+        void* data = array_index(p->act, i);
+        if (*(long*)data == *(long*)item)
+        {
+            array_remove(p->act, i);
+            break;
+        }
+    }
+    array_add(p->dis, item);
 }

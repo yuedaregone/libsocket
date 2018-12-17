@@ -2,6 +2,11 @@
 #include "skt.h"
 #include "array.h"
 #include "buffer.h"
+#ifndef _WIN32
+#include <sys/select.h>
+#include <sys/time.h>
+#endif
+
 
 struct skt_server* skt_server_create()
 {
