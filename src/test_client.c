@@ -20,7 +20,7 @@ int main()
 {
     struct skt_client* client = skt_client_create();
 	skt_client_open(client, NULL, 0);
-    skt_client_connect(client, "192.168.31.51", 8086);
+    skt_client_connect(client, "127.0.0.1", 38086);
 	client->recv_cb = recv_data;
     while (1)
     {

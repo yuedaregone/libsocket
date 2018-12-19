@@ -109,7 +109,8 @@ void skt_log(const char* str, ...);
 //socket_io
 struct skt_io* skt_create_io(skt_d skt, skt_recv_data cb);
 void skt_destroy_io(struct skt_io* io);
-void skt_update_io(struct skt_io* io);
+void skt_update_send_io(struct skt_io* io);
+void skt_update_recv_io(struct skt_io* io);
 int32_t skt_send_io(struct skt_io* io, int8_t* buf, int32_t len);
 
 //socket_client

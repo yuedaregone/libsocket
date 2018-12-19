@@ -121,7 +121,7 @@ static int skt_accept_client(struct skt_server* skt)
 #else
 	socklen_t size = (socklen_t)sizeof(addr);
 #endif
-	int ret = accept(skt->skt, (struct sockaddr*)&addr, &size);
+	int ret = accept(skt->skt, (struct sockaddr*)&addr, &size);	
 	if (ret <= SKT_OK)
 	{
 		int err = GET_ERROR_CODE;;
@@ -147,26 +147,28 @@ static void skt_check_accept(struct skt_server* skt)
 	int sk = skt_accept_client(skt);
 	if (sk != SKT_ERR)
 	{
+		printf("accpet - %d\n", sk);
 		struct skt_io* io = skt_create_io(sk, skt->recv_cb);
 		array_add(skt->skt_ios, (void*)&io);
+		skt_set_non_block(sk); 
 	}
 }
 
-static int skt_select_fds(struct skt_server* skt, double maxtime, fd_set* fdset)
+static int skt_select_fds(struct skt_server* skt, double maxtime, fd_set* rd, fd_set* wr)
 {    
-	fd_set *rd = NULL, *wr = NULL;
+	//fd_set *rd = NULL, *wr = NULL;
 	struct timeval tmout;
 
-	FD_ZERO(fdset);
-	FD_SET(skt->skt, fdset);
+	FD_ZERO(rd); FD_ZERO(wr);
+	FD_SET(skt->skt, rd);
     skt_d max = skt->skt;
     for (int i = 0; i < skt->skt_ios->count; ++i)
     {
         struct skt_io* io = *(struct skt_io**)array_index(skt->skt_ios, i);
-        FD_SET(io->skt, fdset);
+        FD_SET(io->skt, rd);
+		FD_SET(io->skt, wr);
         max = max > io->skt ? max : io->skt;
     }
-    rd = fdset; wr = fdset;
 
 	tmout.tv_sec = (long)maxtime;
 	tmout.tv_usec = (long)(1000000 * (maxtime - (long)maxtime));
@@ -205,8 +207,9 @@ int32_t skt_server_send_to(struct skt_server* skt, skt_d id, int8_t* buf, int32_
 
 void skt_server_update_state(struct skt_server* skt)
 {
-    fd_set fdset;
-    int num = skt_select_fds(skt, 0.01, &fdset);
+    fd_set fd_read;
+	fd_set fd_write;
+    int num = skt_select_fds(skt, 0.01, &fd_read, &fd_write);	
     if (num == 0) return;
     if (num == -1)
     {
@@ -220,7 +223,8 @@ void skt_server_update_state(struct skt_server* skt)
         skt->err_no = err;
         return;
     }
-    if (FD_ISSET(skt->skt, &fdset))
+	
+    if (FD_ISSET(skt->skt, &fd_read))
     {
         skt_check_accept(skt);
     }
@@ -229,9 +233,17 @@ void skt_server_update_state(struct skt_server* skt)
     for (int i = 0; i < skt->skt_ios->count; ++i)
     {
         struct skt_io* io = *(struct skt_io**)array_index(skt->skt_ios, i);
-        if (FD_ISSET(io->skt, &fdset))
+		int readable = FD_ISSET(io->skt, &fd_read);
+		int writeable = FD_ISSET(io->skt, &fd_write);
+
+        if (readable || writeable)
         {
-            skt_update_io(io);
+			if (readable)			
+				skt_update_recv_io(io);
+
+			if (writeable)
+				skt_update_send_io(io);
+            
             if (io->err_no != SKT_OK)
             {
                 rmv[idx++] = i;

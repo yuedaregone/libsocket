@@ -17,7 +17,7 @@ int32_t skt_set_non_block(int32_t fd)
 		return -1;
 	}
 	flag |= O_NONBLOCK;
-	flag |= O_NDELAY;
+	//flag |= O_NDELAY;
 
 	if (fcntl(fd, F_SETFL, flag) < 0)
 	{

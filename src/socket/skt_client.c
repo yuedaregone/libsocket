@@ -147,7 +147,7 @@ int32_t skt_client_send_to(struct skt_client* skt, int8_t* buf, int32_t len)
 	return buf_write_circle(skt->send_buf, buf, len);
 }
 
-static void skt_update_send_io(struct skt_client* skt)
+static void skt_client_update_send(struct skt_client* skt)
 {
 	if (buf_size_data(skt->cur_send) <= 0)
 	{
@@ -184,7 +184,7 @@ static void skt_update_send_io(struct skt_client* skt)
 	}
 }
 
-static void skt_update_recv_io(struct skt_client* skt)
+static void skt_client_update_recv(struct skt_client* skt)
 {
 	if (buf_size_data(skt->cur_recv) > 0)
 	{
@@ -241,8 +241,8 @@ void skt_client_update_state(struct skt_client* skt)
 	}
 	else if (skt->sta == skt_success)
 	{
-		skt_update_send_io(skt);
-        skt_update_recv_io(skt);
+		skt_client_update_send(skt);
+        skt_client_update_recv(skt);
 	}
 	else
 	{

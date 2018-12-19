@@ -33,7 +33,7 @@ int32_t skt_send_io(struct skt_io* io, int8_t* buf, int32_t len)
 }
 
 
-static void skt_update_send_io(struct skt_io* io)
+void skt_update_send_io(struct skt_io* io)
 {
 	if (buf_size_data(io->cur_send) <= 0)
 	{
@@ -69,7 +69,7 @@ static void skt_update_send_io(struct skt_io* io)
 	}
 }
 
-static void skt_update_recv_io(struct skt_io* io)
+void skt_update_recv_io(struct skt_io* io)
 {
 	if (buf_size_data(io->cur_recv) > 0)
 	{
@@ -88,7 +88,7 @@ static void skt_update_recv_io(struct skt_io* io)
 	int32_t sz = 0;
 	while ((sz = buf_space_data(io->cur_recv)) > 0)
 	{
-        int len = recv(io->skt, io->cur_recv->buf + io->cur_recv->ed_idx, sz, 0);
+        int len = recv(io->skt, io->cur_recv->buf + io->cur_recv->ed_idx, sz, 0);        
         if (len > 0)
         {
             io->cur_recv->ed_idx += len;
@@ -118,9 +118,4 @@ static void skt_update_recv_io(struct skt_io* io)
 	}
 }
 
-void skt_update_io(struct skt_io* io)
-{
-    skt_update_send_io(io);
-    skt_update_recv_io(io);
-}
 
