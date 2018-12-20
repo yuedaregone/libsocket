@@ -55,6 +55,7 @@ project "client"
 	configuration { "linux" }
 		buildoptions {
 			"-std=c99",
+			"-Wlogical-op",
 		}	
 
 	configuration {}
@@ -97,5 +98,6 @@ project "server"
 	configuration { "linux" }
 		buildoptions {
 			"-std=c99",
+			"-Wlogical-op",
 		}
 	configuration {}

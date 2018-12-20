@@ -20,16 +20,15 @@ int main()
 {
     struct skt_client* client = skt_client_create();
 	skt_client_open(client, NULL, 0);
-    skt_client_connect(client, "127.0.0.1", 38086);
+    skt_client_connect(client, "10.10.1.124", 38086);
 	client->recv_cb = recv_data;
     while (1)
     {
 		if (client->sta == skt_success)
 		{
 			static char buff[512];
-			scanf("%s", buff);
-            
-            printf("%s\n", buff);
+			scanf("%s", buff);            
+            //printf("%s\n", buff);
 			skt_client_send_to(client, (int8_t*)buff, (int32_t)strlen(buff)+1);
 		}            
 

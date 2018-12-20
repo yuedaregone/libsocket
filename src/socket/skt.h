@@ -73,6 +73,7 @@ struct skt_io
 {
 	skt_d skt;
 	int err_no;
+	int wt_flag; 
 	skt_recv_data data_cb;
 	struct buf_circle* send_buf;
 	struct buf_circle* recv_buf;

@@ -5,6 +5,7 @@ struct skt_io* skt_create_io(skt_d skt, skt_recv_data cb)
 {
     struct skt_io* io = (struct skt_io*)malloc(sizeof(struct skt_io));
     io->skt = skt;
+	io->wt_flag = 0;
 	io->data_cb = cb;
     io->err_no = SKT_OK;
     io->send_buf = buf_create_circle(BUFFER_SOCKET_DATA_SIZE);
@@ -29,6 +30,7 @@ int32_t skt_send_io(struct skt_io* io, int8_t* buf, int32_t len)
 	{
 		io->send_buf = buf_relloc_circle(io->send_buf);
 	}
+	io->wt_flag |= len > 0;
 	return buf_write_circle(io->send_buf, buf, len);
 }
 
@@ -67,24 +69,13 @@ void skt_update_send_io(struct skt_io* io)
             break;
         }
 	}
+
+	if (io->send_buf->data_sz <= 0 && buf_size_data(io->cur_send) <= 0)
+		io->wt_flag = 0;
 }
 
 void skt_update_recv_io(struct skt_io* io)
 {
-	if (buf_size_data(io->cur_recv) > 0)
-	{
-		io->cur_recv->st_idx += buf_write_circle(io->recv_buf, io->cur_recv->buf + io->cur_recv->st_idx, buf_size_data(io->cur_recv));
-		if (buf_size_data(io->cur_recv) <= 0)
-		{
-			buf_reinit_data(io->cur_recv);
-		}
-		//cb
-		if (io->data_cb != NULL)
-		{
-			(*io->data_cb)(io->skt, io->recv_buf);
-		}		
-	}
-
 	int32_t sz = 0;
 	while ((sz = buf_space_data(io->cur_recv)) > 0)
 	{
@@ -115,6 +106,20 @@ void skt_update_recv_io(struct skt_io* io)
             }
             break;
         }		
+	}
+
+	if (buf_size_data(io->cur_recv) > 0)
+	{
+		io->cur_recv->st_idx += buf_write_circle(io->recv_buf, io->cur_recv->buf + io->cur_recv->st_idx, buf_size_data(io->cur_recv));
+		if (buf_size_data(io->cur_recv) <= 0)
+		{
+			buf_reinit_data(io->cur_recv);
+		}
+		//cb
+		if (io->data_cb != NULL)
+		{
+			(*io->data_cb)(io->skt, io->recv_buf);
+		}
 	}
 }
 

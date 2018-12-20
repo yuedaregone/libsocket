@@ -71,7 +71,7 @@ int skt_server_open(struct skt_server* skt, const char* ip, uint16_t port)
 		skt->err_no = err;
 		return SKT_ERR;
 	}
-	if (ip != NULL || strlen(ip) > 0)
+	if (ip != NULL && strlen(ip) > 0)
 	{
 		memcpy(skt->conn_ip, ip, strlen(ip));
 	}
@@ -81,6 +81,7 @@ int skt_server_open(struct skt_server* skt, const char* ip, uint16_t port)
 	addr.sin_family = AF_INET;
 	if (strlen(skt->conn_ip) == 0)
 	{
+		printf("%s\n", "bind any");
 		addr.sin_addr.s_addr = htonl(INADDR_ANY);
 	}
 	else
@@ -121,7 +122,7 @@ static int skt_accept_client(struct skt_server* skt)
 #else
 	socklen_t size = (socklen_t)sizeof(addr);
 #endif
-	int ret = accept(skt->skt, (struct sockaddr*)&addr, &size);	
+	int ret = accept(skt->skt, (struct sockaddr*)&addr, &size);
 	if (ret <= SKT_OK)
 	{
 		int err = GET_ERROR_CODE;;
@@ -166,7 +167,8 @@ static int skt_select_fds(struct skt_server* skt, double maxtime, fd_set* rd, fd
     {
         struct skt_io* io = *(struct skt_io**)array_index(skt->skt_ios, i);
         FD_SET(io->skt, rd);
-		FD_SET(io->skt, wr);
+		if (io->wt_flag) 
+			FD_SET(io->skt, wr);
         max = max > io->skt ? max : io->skt;
     }
 
@@ -234,8 +236,8 @@ void skt_server_update_state(struct skt_server* skt)
     {
         struct skt_io* io = *(struct skt_io**)array_index(skt->skt_ios, i);
 		int readable = FD_ISSET(io->skt, &fd_read);
-		int writeable = FD_ISSET(io->skt, &fd_write);
-
+		int writeable = io->wt_flag && (FD_ISSET(io->skt, &fd_write));
+		 
         if (readable || writeable)
         {
 			if (readable)			
