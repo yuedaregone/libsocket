@@ -36,7 +36,7 @@ typedef int32_t skt_d;
 #endif
 
 #define BUFFER_SOCKET_DATA_SIZE 0x00040000
-#define BUFFER_SOCKET_ONE_FRAME 0x00002000
+#define BUFFER_SOCKET_ONE_FRAME 0x00000800
 
 struct buf_circle;
 struct buf_data;
@@ -54,8 +54,6 @@ struct skt_client
 	skt_recv_data recv_cb;
 	struct buf_circle* send_buf;
 	struct buf_circle* recv_buf;
-	struct buf_data* cur_send;
-	struct buf_data* cur_recv;
 };
 
 struct skt_server
@@ -77,8 +75,6 @@ struct skt_io
 	skt_recv_data data_cb;
 	struct buf_circle* send_buf;
 	struct buf_circle* recv_buf;
-	struct buf_data* cur_send;
-	struct buf_data* cur_recv;
 };
 
 enum

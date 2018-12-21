@@ -12,6 +12,8 @@ void dispatch_register_listen(uint16_t id, msg_callback cb);
 void dispatch_unregister_listen(uint16_t id, msg_callback cb);
 void dispatch_update_data(int32_t skt, struct buf_circle* buf);
 
+int8_t* msg_make_wrap(uint16_t id, int8_t* buf, uint16_t* len);
+
 #pragma pack(1)
 
 struct msg_head

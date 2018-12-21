@@ -19,6 +19,7 @@ void buf_destroy_circle(struct buf_circle* buf);
 int32_t buf_read_circle(struct buf_circle* buf, int8_t* out_b, int32_t len);
 int32_t buf_write_circle(struct buf_circle* buf, int8_t* in_b, int32_t len);
 int32_t buf_peek_circle(struct buf_circle* buf, int8_t* out_b, int32_t len);
+int32_t buf_offset_circle(struct buf_circle* buf, int32_t len);
 int32_t buf_space_circle(struct buf_circle* buf);
 void buf_clear_circle(struct buf_circle* buf);
 struct buf_circle* buf_relloc_circle(struct buf_circle* buf);

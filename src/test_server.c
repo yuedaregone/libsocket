@@ -18,7 +18,7 @@ void recv_data(skt_d skt, struct buf_circle* buf)
 int main()
 {
 	struct skt_server* server = skt_server_create();
-	skt_server_open(server, "10.10.1.124", 38086);
+	skt_server_open(server, NULL, 38086);
 	server->recv_cb = recv_data;
 	while (1)
 	{

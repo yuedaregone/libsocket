@@ -104,6 +104,34 @@ int32_t buf_peek_circle(struct buf_circle* buf, int8_t* out_b, int32_t len)
     return sz;
 }
 
+int32_t buf_offset_circle(struct buf_circle * buf, int32_t len)
+{
+	int32_t sz = buf->data_sz < len ? buf->data_sz : len;
+	if (sz <= 0)
+	{
+		return 0;
+	}
+	if (buf->rd_idx < buf->wt_idx)
+	{
+		buf->rd_idx += sz;
+	}
+	else
+	{
+		int32_t r = buf->cap - buf->rd_idx;
+		if (sz <= r)
+		{
+			if (sz == r) buf->rd_idx = 0;
+			else buf->rd_idx += sz;
+		}
+		else
+		{
+			buf->rd_idx = sz - r;
+		}
+	}
+	buf->data_sz -= sz;
+	return sz;
+}
+
 int32_t buf_write_circle(struct buf_circle* buf, int8_t* in_b, int32_t len)
 {
     int32_t sp_sz = buf_space_circle(buf);

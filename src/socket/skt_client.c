@@ -3,6 +3,8 @@
 #include "skt.h"
 #include "buffer.h"
 
+static int8_t buf_io[BUFFER_SOCKET_ONE_FRAME];
+
 struct skt_client* skt_client_create()
 {
 #ifdef _WIN32
@@ -24,8 +26,6 @@ struct skt_client* skt_client_create()
 	skt->recv_cb = NULL;
     skt->send_buf = buf_create_circle(BUFFER_SOCKET_DATA_SIZE);
     skt->recv_buf = buf_create_circle(BUFFER_SOCKET_DATA_SIZE);
-	skt->cur_send = buf_create_data(BUFFER_SOCKET_ONE_FRAME);
-	skt->cur_recv = buf_create_data(BUFFER_SOCKET_ONE_FRAME);
     return skt;
 }
 
@@ -33,8 +33,6 @@ void skt_client_destroy(struct skt_client* skt)
 {
     buf_destroy_circle(skt->send_buf);
 	buf_destroy_circle(skt->recv_buf);
-	buf_destroy_data(skt->cur_send);
-	buf_destroy_data(skt->cur_recv);
     free(skt);
     
 #ifdef _WIN32
@@ -149,21 +147,17 @@ int32_t skt_client_send_to(struct skt_client* skt, int8_t* buf, int32_t len)
 
 static void skt_client_update_send(struct skt_client* skt)
 {
-	if (buf_size_data(skt->cur_send) <= 0)
-	{
-		buf_reinit_data(skt->cur_send);
-		if (skt->send_buf->data_sz <= 0)
-			return;
-		skt->cur_send->ed_idx = buf_read_circle(skt->send_buf, skt->cur_send->buf, skt->cur_send->cap);
-	}
+	if (skt->send_buf->data_sz <= 0) return;
+	
+	int dt_sz = buf_peek_circle(skt->send_buf, buf_io, BUFFER_SOCKET_ONE_FRAME);
 
 	int32_t sz = 0;
-	while ((sz = buf_size_data(skt->cur_send)) > 0)
+	while (sz < dt_sz)
 	{
-        int len = (int)send(skt->skt, skt->cur_send->buf + skt->cur_send->st_idx, (size_t)sz, 0);
+        int len = send(skt->skt, buf_io + sz, dt_sz - sz, 0);
         if (len > 0)
         {
-            skt->cur_send->st_idx += len;
+			sz += len;
         }
         else
         {
@@ -182,30 +176,26 @@ static void skt_client_update_send(struct skt_client* skt)
             break;
         }
 	}
+	if (sz > 0)
+	{
+		buf_offset_circle(skt->send_buf, sz);
+	}
 }
 
 static void skt_client_update_recv(struct skt_client* skt)
 {
-	if (buf_size_data(skt->cur_recv) > 0)
-	{
-		skt->cur_recv->st_idx += buf_write_circle(skt->recv_buf, skt->cur_recv->buf + skt->cur_recv->st_idx, buf_size_data(skt->cur_recv));
-		if (buf_size_data(skt->cur_recv) <= 0)
-		{
-			buf_reinit_data(skt->cur_recv);
-		}
-		if (skt->recv_cb != NULL)
-		{
-			(skt->recv_cb)(skt->skt, skt->recv_buf);
-		}
-	}
+	int dt_sz = buf_space_circle(skt->recv_buf);	
+	if (dt_sz <= 0) return;
+
+	dt_sz = dt_sz > BUFFER_SOCKET_ONE_FRAME ? BUFFER_SOCKET_ONE_FRAME : dt_sz;
 
 	int32_t sz = 0;
-	while ((sz = buf_space_data(skt->cur_recv)) > 0)
+	while (sz < dt_sz)
 	{
-        int len = recv(skt->skt, skt->cur_recv->buf + skt->cur_recv->ed_idx, sz, 0);
+        int len = recv(skt->skt, buf_io + sz, dt_sz - sz, 0);
         if (len > 0)
         {
-            skt->cur_recv->ed_idx += len;
+			sz += len;
         }
         else
         {
@@ -230,6 +220,16 @@ static void skt_client_update_recv(struct skt_client* skt)
             }
             break;
         }		
+	}
+
+	if (sz > 0)
+	{
+		buf_write_circle(skt->recv_buf, buf_io, sz);
+
+		if (skt->recv_cb != NULL)
+		{
+			(skt->recv_cb)(skt->skt, skt->recv_buf);
+		}
 	}
 }
 
