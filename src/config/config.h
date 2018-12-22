@@ -20,5 +20,25 @@ struct config
     char* str_data;
 };
 
+struct config* config_create();
+int config_load_local_data(const char* filename);
+
+#ifndef CONFIG_IMPLEMENT
+#include "array.h"
+
+struct config* config_create()
+{
+    struct config* cfg = (struct config*)malloc(sizeof(struct config));
+    cfg->cfg_items = array_create(sizeof(struct config_item*));
+    cfg->str_data = NULL;
+}
+
+int config_load_local_data(const char* filename)
+{
+    
+}
+
+
+#endif
 
 #endif //__CONFIG_H__
