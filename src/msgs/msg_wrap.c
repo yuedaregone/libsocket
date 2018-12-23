@@ -1,4 +1,5 @@
 #include "msgs.h"
+#include <string.h>
 
 int8_t* msg_make_wrap(uint16_t id, int8_t* buf, uint16_t* len)
 {
@@ -8,7 +9,7 @@ int8_t* msg_make_wrap(uint16_t id, int8_t* buf, uint16_t* len)
     head.length = *len;
 
     memcpy(s_buff, &head, MSG_HEAD_SIZE);    
-    memcpy(s_buff, buf, len);
+    memcpy(s_buff, buf, *len);
     *len += MSG_HEAD_SIZE;
     return s_buff;
 }

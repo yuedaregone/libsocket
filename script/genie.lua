@@ -27,7 +27,8 @@ project "client"
 		
 	includedirs {
 		path.join(PROJ_DIR, "src"),	
-		path.join(PROJ_DIR, "src/socket"),	
+		path.join(PROJ_DIR, "src/socket"),
+		path.join(PROJ_DIR, "src/config"),	
 		path.join(PROJ_DIR, "src/utils"),		
 	}
 
@@ -70,6 +71,7 @@ project "server"
 	includedirs {
 		path.join(PROJ_DIR, "src"),	
 		path.join(PROJ_DIR, "src/socket"),	
+		path.join(PROJ_DIR, "src/config"),	
 		path.join(PROJ_DIR, "src/utils"),		
 	}
 
