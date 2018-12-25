@@ -8,6 +8,7 @@ typedef void (*msg_callback)(int32_t skt, void* data);
 struct buf_circle;
 
 void dispatch_init();
+void dispatch_destroy();
 void dispatch_register_listen(uint16_t id, msg_callback cb);
 void dispatch_unregister_listen(uint16_t id, msg_callback cb);
 void dispatch_update_data(int32_t skt, struct buf_circle* buf);

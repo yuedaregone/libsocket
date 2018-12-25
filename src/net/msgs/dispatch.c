@@ -15,8 +15,21 @@ void dispatch_init()
 {
     for (int i = 0; i < MAX_MSG_TAG; ++i)
     {
-        msg_dispatch.msg_listens[i] = NULL;        
+		struct array* ar = msg_dispatch.msg_listens[i];
+		if (ar != NULL)
+		{
+			array_destroy(ar);
+			msg_dispatch.msg_listens[i] = NULL;
+		}   
     }
+}
+
+void dispatch_destroy()
+{
+	for (int i = 0; i < MAX_MSG_TAG; ++i)
+	{
+		msg_dispatch.msg_listens[i] = NULL;
+	}
 }
 
 void dispatch_register_listen(uint16_t id, msg_callback cb)
