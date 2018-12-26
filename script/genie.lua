@@ -39,6 +39,9 @@ project "client"
 	}
 	excludes {
 		path.join(PROJ_DIR, "src/test_server.c"),
+		path.join(PROJ_DIR, "src/test_client.c"),
+		path.join(PROJ_DIR, "src/net/net_server.c"),
+		path.join(PROJ_DIR, "src/net/http_server.c"),
 	}
 
 	configuration { "vs* or mingw*" }
@@ -82,7 +85,10 @@ project "server"
 		path.join(PROJ_DIR, "src/**.h"),
 	}
 	excludes {
+		path.join(PROJ_DIR, "src/test_server.c"),
 		path.join(PROJ_DIR, "src/test_client.c"),
+		path.join(PROJ_DIR, "src/net/net_client.c"),
+		path.join(PROJ_DIR, "src/net/http_server.c"),
 	}
 
 	configuration { "vs* or mingw*" }
