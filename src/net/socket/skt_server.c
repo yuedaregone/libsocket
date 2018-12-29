@@ -211,7 +211,7 @@ void skt_server_update_state(struct skt_server* skt)
 {
     fd_set fd_read;
 	fd_set fd_write;
-    int num = skt_select_fds(skt, 0.01, &fd_read, &fd_write);	
+    int num = skt_select_fds(skt, 0, &fd_read, &fd_write);	
     if (num == 0) return;
     if (num == -1)
     {

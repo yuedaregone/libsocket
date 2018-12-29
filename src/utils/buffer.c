@@ -221,6 +221,37 @@ int32_t buf_read_data(struct buf_data* buf, int8_t* out_b, int32_t len)
     return sz;
 }
 
+int32_t buf_indexof_data(struct buf_data* buf, int32_t st_idx, int8_t* checker, int32_t check_len)
+{
+	if (buf_size_data(buf) < check_len)
+	{
+		return B_ERROR;
+	}
+
+	int32_t idx = buf->st_idx + st_idx;
+	while (idx < buf->ed_idx - check_len + 1)
+	{
+		int bingo = 1;
+		for (int i = 0; i < check_len; ++i)
+		{
+			if (*(buf->buf + idx + i) != *(checker + i))
+			{
+				bingo = 0;
+				break;
+			}
+		}
+		if (bingo)
+		{
+			return idx;
+		}
+		else
+		{
+			idx++;
+		}
+	}
+	return B_ERROR;
+}
+
 void buf_destroy_data(struct buf_data* buf)
 {
     free(buf);

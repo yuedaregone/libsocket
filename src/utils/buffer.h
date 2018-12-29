@@ -38,7 +38,7 @@ int32_t buf_read_data(struct buf_data* buf, int8_t* out_b, int32_t len);
 int32_t buf_space_data(struct buf_data* buf);
 int32_t buf_size_data(struct buf_data* buf);
 void buf_reinit_data(struct buf_data* buf);
-
+int32_t buf_indexof_data(struct buf_data* buf, int32_t st_idx, int8_t* checker, int32_t check_len);
 void buf_destroy_data(struct buf_data* buf);
 
 

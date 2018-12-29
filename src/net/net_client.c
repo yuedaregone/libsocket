@@ -10,6 +10,8 @@
 #define CONFIG_IMPLEMENT
 #include "config.h"
 
+#include "pool.h"
+
 static struct skt_client* s_sock = NULL;
 static struct config* s_cfg = NULL;
 
@@ -76,9 +78,11 @@ int main()
         ip = config_get_str_value(s_cfg, "IP");
         port = config_get_int_value(s_cfg, "Port");
     }
+	pool_test();
+	return;
 
 	net_init();
-	net_connect(ip, port);
+	net_connect(ip, (int16_t)port);
 
     while (1)
     {
