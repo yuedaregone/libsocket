@@ -78,8 +78,8 @@ int main()
         ip = config_get_str_value(s_cfg, "IP");
         port = config_get_int_value(s_cfg, "Port");
     }
-	pool_test();
-	return;
+	//pool_test();
+	//return;
 
 	net_init();
 	net_connect(ip, (int16_t)port);
