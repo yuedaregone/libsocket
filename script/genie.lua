@@ -29,6 +29,7 @@ project "client"
 		path.join(PROJ_DIR, "src"),	
 		path.join(PROJ_DIR, "src/net/socket"),
 		path.join(PROJ_DIR, "src/net/msgs"),
+		path.join(PROJ_DIR, "src/net/http"),
 		path.join(PROJ_DIR, "src/config"),	
 		path.join(PROJ_DIR, "src/utils"),		
 	}
@@ -41,7 +42,7 @@ project "client"
 		path.join(PROJ_DIR, "src/test_server.c"),
 		path.join(PROJ_DIR, "src/test_client.c"),
 		path.join(PROJ_DIR, "src/net/net_server.c"),
-		path.join(PROJ_DIR, "src/net/http_server.c"),
+		path.join(PROJ_DIR, "src/net/http/http_server.c"),
 	}
 
 	configuration { "vs* or mingw*" }
@@ -76,6 +77,7 @@ project "server"
 		path.join(PROJ_DIR, "src"),	
 		path.join(PROJ_DIR, "src/net/socket"),
 		path.join(PROJ_DIR, "src/net/msgs"),
+		path.join(PROJ_DIR, "src/net/http"),
 		path.join(PROJ_DIR, "src/config"),	
 		path.join(PROJ_DIR, "src/utils"),		
 	}
@@ -89,7 +91,7 @@ project "server"
 		path.join(PROJ_DIR, "src/test_client.c"),
 		path.join(PROJ_DIR, "src/net/net_client.c"),
 		path.join(PROJ_DIR, "src/net/net_server.c"),
-		--path.join(PROJ_DIR, "src/net/http_server.c"),
+		--path.join(PROJ_DIR, "src/net/http/http_server.c"),
 	}
 
 	configuration { "vs* or mingw*" }
