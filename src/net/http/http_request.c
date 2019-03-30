@@ -7,39 +7,30 @@
 #define GET_LENGTH 3
 #define POST_LENGTH 4
 #define UNUSED(p) p; 
+#define HTTP "http://"
+#define HTTPS "https://"
+#define HTTP_REQUEST_HEAD_FORMAT "%s /%s HTTP/1.1\r\nHost: %s\r\n"
+#define HTTP_REQUEST_HEAD_END "\r\n"
 
-static struct pool* request_pool = NULL;
-
-
-static struct http_request* http_request_create()
+struct http_request* http_request_create()
 {
 	struct http_request* req = (struct http_request*)malloc(sizeof(struct http_request));
 	req->head = buf_create_data(HTTP_REQUEST_DATA_BUFF);
 	req->data = buf_create_data(HTTP_REQUEST_DATA_BUFF);
-	http_request_reset(req);
+	req->sta = sta_none;
+	req->method = NULL;
+	req->protocol = NULL;
 	return req;
 }
 
-static void http_request_destroy(struct http_request* req)
+void http_request_destroy(struct http_request* req)
 {
 	buf_destroy_data(req->head);
     buf_destroy_data(req->data);
 	free(req);
 }
 
-void http_server_init()
-{
-    request_pool = pool_create(http_request_create, http_request_destroy);
-}
-
-static void http_request_reset(struct http_request* req)
-{
-	req->skt_id = 0;
-	req->sta = sta_none;
-	req->method = NULL;
-	req->protocol = NULL;
-}
-
+/*
 struct http_request* http_request_get_request(int32_t skt)
 {
 	void* data = NULL;
@@ -59,18 +50,61 @@ struct http_request* http_request_get_request(int32_t skt)
 	req->skt_id = skt;
 	return req;
 }
+*/
 
-void http_request_return_request(struct http_request* req)
+void http_request_init_with_url(struct http_request* req, const char* url, const char* post_data)
 {
-    UNUSED(req)
+	if (post_data == NULL)
+	{
+		req->method = GET_METHOD;
+	}
+	else
+	{
+		req->method = POST_METHOD;
+	}
+
+	char buff[512] = { 0 };
+	strcpy(buff, url);
+
+	char* hostname = buff;
+	if (strncmp(hostname, HTTP, strlen(HTTP)) == 0)
+	{
+		hostname += strlen(HTTP);
+	}
+	else if (strncmp(hostname, HTTPS, strlen(HTTPS)) == 0)
+	{
+		return;
+	}
+	char* fpath = strchr(hostname, '/');
+	*fpath = '\0'; fpath++;
+	
+	char head_content[1024] = { 0 };
+	sprintf(head_content, HTTP_REQUEST_HEAD_FORMAT, req->method, fpath, hostname);
+
+	buf_write_data(req->head, (int8_t*)head_content, strlen(head_content));
+	buf_write_data(req->head, (int8_t*)HTTP_REQUEST_HEAD_END, strlen(HTTP_REQUEST_HEAD_END));
+
+	req->req_path = (char*)(req->head->buf + strlen(req->method) + 1);
+	req->protocol = (char*)(req->req_path + strlen(fpath) + 1);
+
+	if (post_data != NULL)
+	{
+		buf_write_data(req->data, (int8_t*)post_data, strlen(post_data));
+	}
 }
+
+void http_request_add_head_info(struct http_request* req, const char* head_info)
+{
+	req->head->ed_idx -= strlen(HTTP_REQUEST_HEAD_END);
+	buf_write_data(req->head, (int8_t*)head_info, strlen(head_info));
+	buf_write_data(req->head, (int8_t*)HTTP_REQUEST_HEAD_END, strlen(HTTP_REQUEST_HEAD_END));
+}
+
 
 static void http_request_response_error(struct http_request* req)
 {
 	UNUSED(req)
 }
-
-
 
 static int http_request_parse_head(struct http_request* req)
 {
