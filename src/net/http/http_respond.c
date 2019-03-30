@@ -10,7 +10,7 @@ struct http_respond* http_respond_create()
     struct http_respond* resp = (struct http_respond*)malloc(sizeof(struct http_respond));
     resp->head = buf_create_data(HTTP_REQUEST_DATA_BUFF);
     resp->data = buf_create_data(HTTP_REQUEST_DATA_BUFF);
-	resp->sta = sta_none;
+	http_respond_reset(resp);
     return resp;
 }
 
@@ -19,6 +19,13 @@ void http_respond_destroy(struct http_respond* resp)
     buf_destroy_data(resp->head);
     buf_destroy_data(resp->data);
     free(resp);
+}
+
+void http_respond_reset(struct http_respond* resp)
+{
+	resp->sta = sta_no_recv;
+	buf_reinit_data(resp->head);
+	buf_reinit_data(resp->data);
 }
 
 static int http_execute(const char* cmd, struct buf_data* data)
@@ -38,5 +45,10 @@ static int http_execute_request(struct http_request* req)
 	sprintf(buff, HTTP_RESPOND_MSG, ret, "text/html", buf_size_data(s_resp->data));
 	buf_write_data(s_resp->head, (int8_t*)buff, strlen(buff));
 	
-	s_resp->sta = sta_finished;
+	s_resp->sta = sta_data_finished;
+}
+
+void http_respond_load_data(struct http_respond* resp, struct buf_circle* buf)
+{
+
 }

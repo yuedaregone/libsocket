@@ -26,7 +26,7 @@ static void http_server_data_recv(int32_t skt, struct buf_circle* buf)
 {
 	struct http_request* req = http_request_get_request(skt);
 	http_request_load_data(req, buf);
-    if (req->sta == sta_finished)
+    if (req->sta == sta_data_finished)
     {
         http_execute_request(req);
     }
