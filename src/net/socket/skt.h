@@ -111,7 +111,7 @@ void skt_update_recv_io(struct skt_io* io);
 int32_t skt_send_io(struct skt_io* io, int8_t* buf, int32_t len);
 
 //socket_client
-struct skt_client* skt_client_create();
+struct skt_client* skt_client_create(void);
 void skt_client_destroy(struct skt_client* skt);
 int skt_client_open(struct skt_client* skt, const char* local_ip, uint16_t local_port);
 int skt_client_connect(struct skt_client* skt, const char* ip, uint16_t port);
@@ -120,7 +120,7 @@ void skt_client_update_state(struct skt_client* skt);
 void skt_client_close(struct skt_client* skt);
 
 //socket_server
-struct skt_server* skt_server_create();
+struct skt_server* skt_server_create(void);
 void skt_server_destroy(struct skt_server* skt);
 int skt_server_open(struct skt_server* skt, const char* ip, uint16_t port);
 int32_t skt_server_send_to(struct skt_server* skt, skt_d id, int8_t* buf, int32_t len);

@@ -10,10 +10,9 @@
 #define HTTP "http://"
 #define HTTPS "https://"
 #define HTTP_REQUEST_HEAD_FORMAT "%s /%s HTTP/1.1\r\nHost: %s\r\n"
-#define HTTP_REQUEST_HEAD_END "\r\n"
 #define HTTP_HOST "Host: "
 
-struct http_request* http_request_create()
+struct http_request* http_request_create(void)
 {
 	struct http_request* req = (struct http_request*)malloc(sizeof(struct http_request));
 	req->head = buf_create_data(HTTP_REQUEST_DATA_BUFF);
@@ -32,7 +31,6 @@ void http_request_destroy(struct http_request* req)
 void http_request_reset(struct http_request* req)
 {
 	req->sta = sta_no_recv;
-	req->method = NULL;
 	buf_reinit_data(req->head);
 	buf_reinit_data(req->data);
 }
@@ -52,7 +50,14 @@ void http_request_init_with_url(struct http_request* req, const char* url, const
 		return;
 	}
 	char* fpath = strchr(hostname, '/');
-	*fpath = '\0'; fpath++;
+    if (fpath != NULL)
+    {
+        *fpath = '\0'; fpath++;
+    }
+    else
+    {
+        fpath = "";
+    }
 	
 	char head_content[1024] = { 0 };
 	if (post_data == NULL)
@@ -60,27 +65,27 @@ void http_request_init_with_url(struct http_request* req, const char* url, const
 	else
 		sprintf(head_content, HTTP_REQUEST_HEAD_FORMAT, POST_METHOD, fpath, hostname);
 
-	buf_write_data(req->head, (int8_t*)head_content, strlen(head_content));
-	buf_write_data(req->head, (int8_t*)HTTP_REQUEST_HEAD_END, strlen(HTTP_REQUEST_HEAD_END));
+	buf_write_data(req->head, (int8_t*)head_content, (int32_t)strlen(head_content));
+	buf_write_data(req->head, (int8_t*)HTTP_HEAD_LINE_END, strlen(HTTP_HEAD_LINE_END));
 
 	if (post_data != NULL)
 	{
-		buf_write_data(req->data, (int8_t*)post_data, strlen(post_data));
+		buf_write_data(req->data, (int8_t*)post_data, (int32_t)strlen(post_data));
 	}
 }
 
 void http_request_add_head_info(struct http_request* req, const char* head_info)
 {
-	req->head->ed_idx -= strlen(HTTP_REQUEST_HEAD_END);
-	buf_write_data(req->head, (int8_t*)head_info, strlen(head_info));
-	buf_write_data(req->head, (int8_t*)HTTP_REQUEST_HEAD_END, strlen(HTTP_REQUEST_HEAD_END));
+	req->head->ed_idx -= strlen(HTTP_HEAD_LINE_END);
+	buf_write_data(req->head, (int8_t*)head_info, (int32_t)strlen(head_info));
+	buf_write_data(req->head, (int8_t*)HTTP_HEAD_LINE_END, strlen(HTTP_HEAD_LINE_END));
 }
 
 
-static void http_request_response_error(struct http_request* req)
-{
-	UNUSED(req)
-}
+//static void http_request_response_error(struct http_request* req)
+//{
+//	UNUSED(req)
+//}
 
 static int http_request_read_buf_data(struct http_request* req, int8_t* buf, int32_t len)
 {
@@ -145,13 +150,11 @@ int http_request_load_data(struct http_request* req, struct buf_circle* buf)
 	case sta_no_recv:
 	case sta_data_reading_head:
 	{		
-		http_request_read_head(req, buf);
-		break;
+		return http_request_read_head(req, buf);
 	}
 	case sta_data_reading_data:
 	{
-		http_request_read_data(req, buf);
-		break;
+		return http_request_read_data(req, buf);
 	}
 	default:
 		break;
@@ -159,20 +162,20 @@ int http_request_load_data(struct http_request* req, struct buf_circle* buf)
 	return 0;
 }
 
-void http_request_get_hostname(struct http_request* req, char* buf, int len)
+int http_request_get_hostname(struct http_request* req, char* buf, int len)
 {
-	int32_t st_idx = buf_indexof_data(req->head, 0, (int8_t*)HTTP_HOST, strlen(HTTP_HOST));
-	if (st_idx == -1)
-		return HTTP_ERR;
-	st_idx += strlen(HTTP_HOST);
+	return http_utils_get_tag(req->head, buf, len, HTTP_HOST, HTTP_HEAD_LINE_END);
+}
 
-	int32_t ed_idx = buf_indexof_data(req->head, st_idx, (int8_t*)HTTP_REQUEST_HEAD_END, strlen(HTTP_REQUEST_HEAD_END));
-	if (ed_idx == -1)
-		return HTTP_ERR;
-
-	if (len > ed_idx - st_idx)
-	{
-		strcpy(buf, (const char*)(req->head->buf + st_idx));
-	}
-	return ed_idx - st_idx;
+int http_request_get_path(struct http_request* req, char* buf, int len)
+{
+    if (strncmp((const char*)req->head->buf, GET_METHOD, GET_LENGTH) == 0)
+    {
+        return http_utils_get_tag(req->head, buf, len, GET_METHOD, " ");
+    }
+    else if (strncmp((const char*)req->head->buf, POST_METHOD, POST_LENGTH) == 0)
+    {
+        return http_utils_get_tag(req->head, buf, len, POST_METHOD, " ");
+    }
+	return HTTP_ERR;
 }

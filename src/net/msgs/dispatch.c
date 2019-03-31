@@ -11,7 +11,7 @@ struct dispatch
 };
 static struct dispatch msg_dispatch;
 
-void dispatch_init()
+void dispatch_init(void)
 {
     for (int i = 0; i < MAX_MSG_TAG; ++i)
     {
@@ -24,7 +24,7 @@ void dispatch_init()
     }
 }
 
-void dispatch_destroy()
+void dispatch_destroy(void)
 {
 	for (int i = 0; i < MAX_MSG_TAG; ++i)
 	{

@@ -3,7 +3,7 @@
 #include <stdio.h>
 #include "array.h"
 
-typedef void* (*pool_create_item_fun)();
+typedef void* (*pool_create_item_fun)(void);
 typedef void (*pool_destroy_item_fun)(void* item);
 
 struct pool

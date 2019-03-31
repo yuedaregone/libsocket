@@ -42,7 +42,7 @@ void skt_update_send_io(struct skt_io* io)
 	int32_t sz = 0;
 	while (sz < dt_sz)
 	{
-		int len = send(io->skt, buf_io + sz, dt_sz - sz, 0);
+		int len = (int)send(io->skt, buf_io + sz, dt_sz - sz, 0);
 		if (len > 0)
 		{
 			sz += len;
@@ -82,7 +82,7 @@ void skt_update_recv_io(struct skt_io* io)
 	int32_t sz = 0;
 	while (sz < dt_sz)
 	{
-		int len = recv(io->skt, buf_io + sz, dt_sz - sz, 0);
+		int len = (int)recv(io->skt, buf_io + sz, dt_sz - sz, 0);
 		if (len > 0)
 		{
 			sz += len;

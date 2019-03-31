@@ -154,7 +154,7 @@ static void skt_client_update_send(struct skt_client* skt)
 	int32_t sz = 0;
 	while (sz < dt_sz)
 	{
-        int len = send(skt->skt, buf_io + sz, dt_sz - sz, 0);
+        int len = (int)send(skt->skt, buf_io + sz, dt_sz - sz, 0);
         if (len > 0)
         {
 			sz += len;
@@ -192,7 +192,7 @@ static void skt_client_update_recv(struct skt_client* skt)
 	int32_t sz = 0;
 	while (sz < dt_sz)
 	{
-        int len = recv(skt->skt, buf_io + sz, dt_sz - sz, 0);
+        int len = (int)recv(skt->skt, buf_io + sz, dt_sz - sz, 0);
         if (len > 0)
         {
 			sz += len;
