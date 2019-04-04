@@ -8,7 +8,7 @@ int http_utils_get_tag(struct buf_data* data, char* buf, int len, char* st_str, 
 		return HTTP_ERR;
 	st_idx += strlen(st_str);
 
-	int32_t ed_idx = buf_indexof_data(data, st_idx, (int8_t*)ed_str, (int32_t)strlen(ed_str));
+	int32_t ed_idx = st_idx + buf_indexof_data(data, st_idx, (int8_t*)ed_str, (int32_t)strlen(ed_str));
 	if (ed_idx == -1)
 		return HTTP_ERR;
 

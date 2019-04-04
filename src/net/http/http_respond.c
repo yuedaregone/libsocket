@@ -2,6 +2,7 @@
 #include "buffer.h"
 #include "array.h"
 #include "pool.h"
+#include "utils.h"
 
 #define HTTP_RESPOND_MSG "HTTP/1.1 %d OK\r\nContent-Type: %s\r\nContent-Length: %d\r\n\r\n"
 #define HTTP_CONTENT_SIZE "Content-Length: "
@@ -116,15 +117,62 @@ static int http_respond_read_buf_data(struct http_respond* resp, int8_t* buf, in
 
 static int http_respond_read_data(struct http_respond* resp, struct buf_circle* buf)
 {
-    int8_t buff[1024];
+	int chunck = http_respond_get_is_chunked(resp);
+
+    int8_t buffer[1024];
     while (buf->data_sz > 0)
     {
-        int32_t len = buf_read_circle(buf, buff, 1024);
-        int ret = http_respond_read_buf_data(resp, buff, len);
-        if (ret != 0)
-        {
-            return ret;
-        }
+        int32_t rd_sz = buf_peek_circle(buf, buffer, 1024);
+		if (chunck)
+		{
+			if (resp->data->st_idx <= resp->data->ed_idx)
+			{
+				int idx = utils_indexof_data(buffer, rd_sz, HTTP_HEAD_LINE_END, strlen(HTTP_HEAD_LINE_END));
+				if (idx == -1)
+				{
+					return 0;
+				}
+				char num_buf[64] = { 0 };
+				strncpy(num_buf, buffer, idx);
+
+				int ck_sz = 0;
+				if (utils_try_atoi_hex(num_buf, &ck_sz) != 0)
+				{
+					printf("error - get chunck error: %s\n", num_buf);
+					return 0;
+				}
+				if (ck_sz == 0)
+				{
+					resp->sta = sta_data_finished;
+				}
+				resp->data->st_idx += ck_sz;
+				buf_offset_circle(buf, idx + strlen(HTTP_HEAD_LINE_END));
+			}
+			else
+			{
+				if (buf_space_data(resp->data) < rd_sz)
+				{
+					buf_relloc_data(resp->data);
+				}
+				buf_write_data(resp->data, buffer, resp->data->ed_idx - resp->data->st_idx);
+				buf_offset_circle(buf, resp->data->ed_idx - resp->data->st_idx);
+			}
+		}
+		else
+		{
+			if (buf_space_data(resp->data) < rd_sz)
+			{
+				buf_relloc_data(resp->data);
+			}
+			buf_write_data(resp->data, buffer, rd_sz);
+			buf_offset_circle(buf, rd_sz);
+
+			int size = http_respond_get_content_size(resp);
+			if (buf_size_data(resp->data) >= size)
+			{
+				resp->sta = sta_data_finished;
+			}
+		}
     }
     return 0;
 }
@@ -133,29 +181,41 @@ static int http_respond_read_data(struct http_respond* resp, struct buf_circle* 
 static int http_respond_read_head(struct http_respond* resp, struct buf_circle* buf)
 {
     resp->sta = sta_data_reading_head;
-    if (resp->head->cap - resp->head->ed_idx == 0)
-    {
-        printf("buffer is full!\n");
-        return -1;
-    }
+
     char tag[] = { "\r\n\r\n" };
     int32_t tag_len = (int32_t)strlen(tag);
-    
-    int32_t st_idx = resp->head->ed_idx;
-    int32_t sz = buf_read_circle(buf, resp->head->buf + st_idx, resp->head->cap - st_idx);
-    resp->head->ed_idx += sz;
-    
-    int32_t rd_idx = st_idx < tag_len ? st_idx : st_idx - tag_len + 1;
-    int32_t idx = buf_indexof_data(resp->head, rd_idx, (int8_t*)tag, tag_len);
-    if (idx != -1)
-    {
-        resp->sta = sta_data_reading_data;
-        if (idx + tag_len < resp->head->ed_idx)
-        {
-            http_respond_read_buf_data(resp, resp->head->buf + idx + tag_len, resp->head->ed_idx - idx - tag_len);
-            resp->head->ed_idx = idx + tag_len;
-        }
-    }    
+
+	char buffer[1024] = { 0 };
+
+	while (buf->data_sz > 0)
+	{
+		int32_t rd_sz = buf_peek_circle(buf, (int8_t*)buffer, 1024);
+		int idx = utils_indexof_data(buffer, rd_sz, tag, tag_len);
+		if (idx == -1)
+		{
+			if (buf_space_data(resp->head) < rd_sz)
+			{
+				buf_relloc_data(resp->head);
+			}
+			buf_write_data(resp->head, buffer, rd_sz);
+			buf_offset_circle(buf, rd_sz);
+		}
+		else
+		{
+			if (buf_space_data(resp->head) < idx + tag_len)
+			{
+				buf_relloc_data(resp->head);
+			}
+			buf_write_data(resp->head, buffer, idx + tag_len);
+			buf_offset_circle(buf, idx + tag_len);
+			resp->sta = sta_data_reading_data;
+			break;			
+		}
+	}	
+	if (resp->sta == sta_data_reading_data && buf->data_sz > 0)
+	{
+		http_respond_read_data(resp, buf);
+	}	
     return 0;
 }
 

@@ -1,4 +1,5 @@
 #include "buffer.h"
+#include "utils.h"
 #include <stdlib.h>
 #include <string.h>
 
@@ -227,29 +228,7 @@ int32_t buf_indexof_data(struct buf_data* buf, int32_t st_idx, int8_t* checker, 
 	{
 		return B_ERROR;
 	}
-
-	int32_t idx = buf->st_idx + st_idx;
-	while (idx < buf->ed_idx - check_len + 1)
-	{
-		int bingo = 1;
-		for (int i = 0; i < check_len; ++i)
-		{
-			if (*(buf->buf + idx + i) != *(checker + i))
-			{
-				bingo = 0;
-				break;
-			}
-		}
-		if (bingo)
-		{
-			return idx;
-		}
-		else
-		{
-			idx++;
-		}
-	}
-	return B_ERROR;
+	return utils_indexof_data((char*)(buf->buf + buf->st_idx + st_idx), buf->ed_idx - buf->st_idx - st_idx, checker, check_len);
 }
 
 void buf_destroy_data(struct buf_data* buf)
