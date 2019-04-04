@@ -23,7 +23,7 @@ static struct http_client* http_client_get_active_client(int32_t skt)
     for (int i = 0; i < arr->count; ++i)
     {
         struct http_client* clt = *(struct http_client**)array_index(arr, i);
-        if (clt->sock->skt == skt)
+        if (clt->sock->skt == (skt_d)skt)
             return clt;
     }
     return NULL;
@@ -93,7 +93,7 @@ static void http_client_send_request(struct http_client* clt)
 	} while (head_sz > 0);
 
 	int32_t data_sz = 0;
-	do
+	do 
 	{
 		data_sz = buf_size_data(clt->req->data);
 		struct buf_data* bd = clt->req->data;
@@ -167,6 +167,7 @@ void http_client_send(struct http_client* clt)
     skt_client_connect(clt->sock, ip, 80);
 }
 
+/*
 static void http_client_over(struct http_respond* resp)
 {
     printf((const char*)resp->data->buf);
@@ -185,53 +186,7 @@ int main()
 #else
         usleep(100000);
 #endif
-    }
-    
-    /*
-	s_sock = skt_client_create();
-	s_sock->recv_cb = http_client_data_recv;
-
-	struct hostent *h = gethostbyname("daregone.pythonanywhere.com");
-	if (h == NULL)
-	{
-		printf("exit -1");
-		skt_client_destroy(s_sock);
-		return -1;
-	}	
-	char* ip = inet_ntoa(*((struct in_addr *)h->h_addr));
-	int port = 80;
-
-	skt_client_open(s_sock, NULL, 0);
-	skt_client_connect(s_sock, ip, (uint16_t)port);
-
-	int send = 0;
-
-	const char* http_send = "GET /index.html HTTP/1.1\r\nHost: daregone.pythonanywhere.com\r\n\r\n";
-     
-
-	while (1)
-	{	
-		if (!send && s_sock->sta == skt_success)
-		{
-			//skt_client_send_to(s_sock, http_send, strlen(http_send));
-			send = 1;
-		}
-
-		skt_client_update_state(s_sock);
-
-		//if (s_resp != NULL && s_resp->sta == sta_finished)
-		{
-		//	skt_server_send_to(s_sock, s_resp->skt_id, s_resp->head->buf, buf_size_data(s_resp->head));
-		//	skt_server_send_to(s_sock, s_resp->skt_id, s_resp->data->buf, buf_size_data(s_resp->data));
-		}
-#ifdef _WIN32
-		Sleep(100);
-#else
-		usleep(100000);
-#endif        
-	}
-     */
-    
-    
+    } 
 	return 0;
 }
+*/

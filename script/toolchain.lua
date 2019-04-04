@@ -133,7 +133,7 @@ function toolchain(_buildDir, _libDir)
 	newoption {
 		trigger = "with-windows",
 		value = "#",
-		description = "Set the Windows target platform version (default: $WindowsSDKVersion or 10.0.17134.0).",
+		description = "Set the Windows target platform version (default: $WindowsSDKVersion or 10.0.17763.0).",
 	}
 
 	newoption {
@@ -182,7 +182,7 @@ function toolchain(_buildDir, _libDir)
 		tvosPlatform = _OPTIONS["with-tvos"]
 	end
 
-	local windowsPlatform = string.gsub(os.getenv("WindowsSDKVersion") or "10.0.17134.0", "\\", "")
+	local windowsPlatform = string.gsub(os.getenv("WindowsSDKVersion") or "10.0.17763.0", "\\", "")
 	if _OPTIONS["with-windows"] then
 		windowsPlatform = _OPTIONS["with-windows"]
 	end
@@ -504,7 +504,7 @@ function toolchain(_buildDir, _libDir)
 	}
 
 	configuration { "Debug" }
-		targetsuffix "Debug"
+		--targetsuffix "Debug"
 		defines {
 			"_DEBUG",
 		}
@@ -517,7 +517,7 @@ function toolchain(_buildDir, _libDir)
 		defines {
 			"NDEBUG",
 		}
-		targetsuffix "Release"
+		--targetsuffix "Release"
 
 	configuration { "qbs" }
 		flags {

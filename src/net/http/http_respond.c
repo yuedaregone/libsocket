@@ -5,6 +5,8 @@
 
 #define HTTP_RESPOND_MSG "HTTP/1.1 %d OK\r\nContent-Type: %s\r\nContent-Length: %d\r\n\r\n"
 #define HTTP_CONTENT_SIZE "Content-Length: "
+#define HTTP_TRANSFER_ENCODING "Transfer-Encoding: "
+#define HTTP_CHUNKED "chunked"
 
 struct http_respond* http_respond_create(void)
 {
@@ -53,47 +55,62 @@ static int http_execute_request(struct http_request* req)
     return HTTP_OK;
 }
 
-static int http_respond_read_content_size(struct http_respond* resp, char* buf, int len)
+static int http_respond_get_content_size(struct http_respond* resp)
 {
-    return http_utils_get_tag(resp->head, buf, len, HTTP_CONTENT_SIZE, HTTP_HEAD_LINE_END);
+	char buf[32] = { 0 };
+	if (http_utils_get_tag(resp->head, buf, 32, HTTP_CONTENT_SIZE, HTTP_HEAD_LINE_END) != HTTP_ERR)
+	{
+		return atoi(buf);
+	}
+	return HTTP_ERR;
 }
 
-static void http_respond_check_recv_finish(struct http_respond* resp)
+int http_respond_get_is_chunked(struct http_respond* resp)
 {
-    if (resp->sta != sta_data_reading_data)
-        return;
-
-    char buf[32] = {0};
-    int ret = http_respond_read_content_size(resp, buf, 32);
-    if (ret == -1)
-    {
-        const char* end_tag = "\r\n\r\n";
-        const char* end_str = (const char*)(resp->data->buf + resp->data->ed_idx - (int)strlen(end_tag));
-        if (strncmp(end_tag, end_str, strlen(end_tag)) == 0)
-        {
-            resp->sta = sta_data_finished;
-        }
-    }
-    else
-    {
-        int size = atoi(buf);
-        if (buf_size_data(resp->data) >= size)
-        {
-            resp->sta = sta_data_finished;
-        }
-    }
+	char buf[32] = { 0 };
+	if (http_utils_get_tag(resp->head, buf, 32, HTTP_TRANSFER_ENCODING, HTTP_HEAD_LINE_END) != HTTP_ERR)
+	{
+		return strncmp(buf, HTTP_CHUNKED, strlen(HTTP_CHUNKED)) == 0 ? 1 : 0;
+	}
+	return 0;
 }
+
 
 static int http_respond_read_buf_data(struct http_respond* resp, int8_t* buf, int32_t len)
 {
     int32_t sp = buf_space_data(resp->data);
     if (sp < len)
     {
-        printf("respond data is too long!\n");
-        return -1;
+		buf_relloc_data(resp->data);
     }
-    buf_write_data(resp->data, buf, len);
-    http_respond_check_recv_finish(resp);
+	if (http_respond_get_is_chunked(resp))
+	{
+		buf_write_data(resp->data, buf, len);
+		static int datalen = -1;
+		if (datalen == -1)
+		{
+			int32_t idx = buf_indexof_data(resp->data, 0, (int8_t*)HTTP_HEAD_LINE_END, (int32_t)strlen(HTTP_HEAD_LINE_END));
+			char buffer[32] = { 0 };
+			strncpy(buffer, (const char*)resp->data, idx);
+			datalen = atoi(buffer);
+		}
+
+		const char* end_tag = "0\r\n\r\n";
+		const char* end_str = (const char*)(resp->data->buf + resp->data->ed_idx - (int)strlen(end_tag));
+		if (strncmp(end_tag, end_str, strlen(end_tag)) == 0)
+		{
+			resp->sta = sta_data_finished;
+		}
+	}
+	else
+	{
+		buf_write_data(resp->data, buf, len);
+		int size = http_respond_get_content_size(resp);
+		if (buf_size_data(resp->data) >= size)
+		{
+			resp->sta = sta_data_finished;
+		}
+	}
     return 0;
 }
 

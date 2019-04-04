@@ -174,8 +174,8 @@ void buf_clear_circle(struct buf_circle* buf)
 struct buf_data* buf_create_data(int32_t capacity)
 {
     capacity = power2(capacity);
-    struct buf_data* buf = (struct buf_data*)malloc(sizeof(struct buf_data) + capacity);
-    buf->buf = (int8_t*)(buf + 1);
+    struct buf_data* buf = (struct buf_data*)malloc(sizeof(struct buf_data));
+    buf->buf = (int8_t*)malloc(capacity);
     buf->cap = capacity;
     buf->st_idx = 0;
     buf->ed_idx = 0;
@@ -254,6 +254,15 @@ int32_t buf_indexof_data(struct buf_data* buf, int32_t st_idx, int8_t* checker, 
 
 void buf_destroy_data(struct buf_data* buf)
 {
+	free(buf->buf);
     free(buf);
+}
+
+void buf_relloc_data(struct buf_data * buf)
+{
+	int8_t* b = buf->buf;		
+	buf->buf = (int8_t*)malloc(buf->cap * 2);
+	memcpy(buf->buf, b, buf->cap);
+	buf->cap = buf->cap * 2;	
 }
 
