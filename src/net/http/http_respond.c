@@ -144,6 +144,7 @@ static int http_respond_read_data(struct http_respond* resp, struct buf_circle* 
 				if (ck_sz == 0)
 				{
 					resp->sta = sta_data_finished;
+					resp->data->st_idx = 0;
 				}
 				resp->data->st_idx += ck_sz;
 				buf_offset_circle(buf, idx + strlen(HTTP_HEAD_LINE_END));
@@ -154,8 +155,10 @@ static int http_respond_read_data(struct http_respond* resp, struct buf_circle* 
 				{
 					buf_relloc_data(resp->data);
 				}
-				buf_write_data(resp->data, buffer, resp->data->ed_idx - resp->data->st_idx);
-				buf_offset_circle(buf, resp->data->ed_idx - resp->data->st_idx);
+				int len = resp->data->st_idx - resp->data->ed_idx;
+				int wt_sz = rd_sz <= len ? rd_sz : len;
+				buf_write_data(resp->data, buffer, wt_sz);
+				buf_offset_circle(buf, wt_sz);
 			}
 		}
 		else

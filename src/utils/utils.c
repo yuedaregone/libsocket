@@ -53,7 +53,7 @@ int utils_try_atoi_hex(char* str, int* num)
 	char ch;
 	while ((ch = *(s++)) != '\0')
 	{
-		if (!isspace(ch) && !isdigit(ch))
+		if (!isspace(ch) && !isalnum(ch))
 			return -1;
 	}
 	*num = (int)strtol(str, NULL, 16);
