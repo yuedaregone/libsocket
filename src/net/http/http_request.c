@@ -171,11 +171,11 @@ int http_request_get_path(struct http_request* req, char* buf, int len)
 {
     if (strncmp((const char*)req->head->buf, GET_METHOD, GET_LENGTH) == 0)
     {
-        return http_utils_get_tag(req->head, buf, len, GET_METHOD, " ");
+        return http_utils_get_tag(req->head, buf, len, "GET ", " ");
     }
     else if (strncmp((const char*)req->head->buf, POST_METHOD, POST_LENGTH) == 0)
     {
-        return http_utils_get_tag(req->head, buf, len, POST_METHOD, " ");
+        return http_utils_get_tag(req->head, buf, len, "POST ", " ");
     }
 	return HTTP_ERR;
 }

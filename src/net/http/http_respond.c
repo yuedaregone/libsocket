@@ -28,6 +28,7 @@ void http_respond_destroy(struct http_respond* resp)
 void http_respond_reset(struct http_respond* resp)
 {
 	resp->sta = sta_no_recv;
+	resp->req = NULL;
 	buf_reinit_data(resp->head);
 	buf_reinit_data(resp->data);
 }
@@ -131,6 +132,11 @@ static int http_respond_read_data(struct http_respond* resp, struct buf_circle* 
 				if (idx == -1)
 				{
 					return 0;
+				}
+				if (idx == 0)
+				{
+					buf_offset_circle(buf, strlen(HTTP_HEAD_LINE_END));
+					continue;
 				}
 				char num_buf[64] = { 0 };
 				strncpy(num_buf, buffer, idx);

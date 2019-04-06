@@ -24,7 +24,7 @@ typedef int32_t skt_d;
 #endif
 
 #define IP_MAX_LEN 16
-#ifndef INVALID_SOCKET
+#ifndef INVALID_SOCKET 
 #define INVALID_SOCKET -1
 #endif
 #define SKT_OK 0
@@ -50,6 +50,7 @@ struct skt_client
 	skt_d skt;
 	int err_no;
     int16_t sta;
+	int64_t tm;
 	char conn_ip[IP_MAX_LEN];
     uint16_t conn_port;
 	skt_recv_data recv_cb;

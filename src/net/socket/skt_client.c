@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <string.h>
+#include <time.h>
 #include "skt.h"
 #include "buffer.h"
 
@@ -196,6 +197,7 @@ static void skt_client_update_recv(struct skt_client* skt)
         if (len > 0)
         {
 			sz += len;
+			skt->tm = time(NULL);
         }
         else
         {

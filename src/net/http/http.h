@@ -52,6 +52,7 @@ struct http_respond
     int sta;
     struct buf_data* head;
     struct buf_data* data;
+	struct http_request* req;
 };
 
 NET_API struct http_respond* http_respond_create(void);
@@ -77,6 +78,8 @@ struct http_client
 {
 	int sta;
     http_recv_finish cb;
+	char ip[16];
+	uint16_t port;
 	struct skt_client* sock;
 	struct http_request* req;
 	struct http_respond* resp;

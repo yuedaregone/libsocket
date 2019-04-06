@@ -211,12 +211,12 @@ int32_t buf_write_data(struct buf_data* buf, int8_t* in_b, int32_t len)
 
 int32_t buf_read_data(struct buf_data* buf, int8_t* out_b, int32_t len)
 {
-    int32_t space = buf_space_data(buf);
-    if (space == 0)
+	int32_t data_sz = buf_size_data(buf);
+    if (data_sz == 0)
         return 0;
-    if (space < 0)
+	if (data_sz < 0)
         return B_ERROR;
-    int32_t sz = space < len ? space : len;
+	int32_t sz = data_sz < len ? data_sz : len;
     memcpy(out_b, buf->buf + buf->st_idx, sz);
     buf->st_idx += sz;
     return sz;
